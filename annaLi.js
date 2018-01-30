@@ -32,10 +32,17 @@ try{
 		return
 	}
 
+	//If username is toon then reply baka
+	if(message.author.username == 'Toon' && message.author.bot === false){
+		console.log('user:',message.author.username,'replying with: baka')
+		message.reply('BAKA!')
+		return
+	}
+
 	//If you ask anna a question
 	if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
 
-		const responses = ['Yeah', 'Spooky', 'No.', 'b-b-b-baakakakka!', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
+		const responses = ['Yeah', 'Spooky', 'No.', 'baka', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
 
 		message.reply(responses[math.round(math.random()*(responses.length-1))])
 	}
