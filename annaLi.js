@@ -1,9 +1,15 @@
-const Discord = require("discord.js")
-const client = new Discord.Client()
+const Discord 		= require("discord.js")
+const client 		= new Discord.Client()
 
-const MongoClient = require('mongodb').MongoClient
-const assert = require('assert')
-const url = 'mongodb://localhost:27017'
+const MongoClient 	= require('mongodb').MongoClient
+const assert 		= require('assert')
+const url 			= 'mongodb://localhost:27017'
+
+const math 			= require('mathjs')
+
+//Importing libarays
+
+//const messages 		= require('./messages')
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`)
@@ -11,9 +17,92 @@ client.on('ready', () => {
 
 client.on('message', message => {
 
-	if (message.content === 'ping'){
-		//message.reply(message.author.avatarURL)
+	let messageContent = message.content.toLowerCase()
+
+	//Dont set messages in mainchat or weeb-meme-land
+	if(message.channel.name === 'mainchat' || message.channel.name === 'weeb-meme-land'){
+		console.log('Ignored:', message.channel.name)
+		return
+	}
+
+	//ignore thses users
+	if(message.author.username == 'aFrenchToastMan'){
+		console.log('Ignored:', message.author.username)
+		return
+	}
+
+	//If you ask anna a question
+	if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
+
+		const responses = ['Yeah', 'Spooky', 'No.', 'b-b-b-baakakakka!', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
+
+		message.reply(responses[math.round(math.random()*(responses.length-1))])
+	}
+
+	//Anna Li can find your pic for you
+	if(messageContent.includes('mypic') && message.author.bot === false){
+		 message.reply(message.author.avatarURL)
+	}
+
+	//You spooked an Anna Li! She boops you!
+	if (messageContent.includes('spooky') && message.author.bot === false){
+		console.log(message.author.username,'spookyed Anna Li!')
 		message.reply('boop!!!!')
+	}
+
+	//If Anna Li is in a call, she'll leave and be sad
+	if (messageContent.includes('leave') && message.author.bot === false){
+
+		const channel = message.member.voiceChannel
+		message.reply('QQ...')
+		channel.leave()
+	}
+
+	if (messageContent.includes('test') && message.author.bot === false){
+
+		// console.log('CONSOLELOG----------------------------\n', client.emojis.get('318986211379118081'))
+		// console.log('NUMBER2----------------------------\n', client.emojis.find('name','spooky'))
+
+		//const spooky = client.emojis.find('name','spooky')
+		//const spooky = client.emojis.get('407735054425653248')
+
+
+		message.reply('🙃')
+
+		const channel = message.member.voiceChannel
+
+		channel.join().then(connection =>{
+			console.log(connection)
+			const dispatcher = connection.playFile('./nya.mp3')
+			console.log('dispatcher', dispatcher.volumeLogarithmic)
+			dispatcher.setVolumeLogarithmic(0.10)
+			console.log('SETVOLUME', dispatcher.volumeLogarithmic)
+
+		}).catch(err =>{
+			console.log(err)
+		})
+
+		// Play a broadcast
+		// const broadcast = client
+		// 	.createVoiceBroadcast()
+		// 	.playFile('./test.mp3');
+		// const dispatcher = voiceConnection.playBroadcast(broadcast);
+		message.reply('I Test! :3c ')
+	}
+
+	if (messageContent.includes('join') && message.author.bot === false){
+		console.log('join command detected')
+
+		const channel = message.member.voiceChannel	//Need to check if in voice channel
+
+		channel.join().then(connection =>{
+			//console.log(connection)
+			console.log('Message detected in:', message.channel.name)
+			message.reply('I joined ;) ')
+		}).catch(err =>{
+			console.log(err)
+		})
+
 	}
 
 	//mongodb init
