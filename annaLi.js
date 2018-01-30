@@ -9,10 +9,11 @@ client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on('message', msg => {
+client.on('message', message => {
 
-	if (msg.content === 'ping'){
-		msg.reply('Pong!')
+	if (message.content === 'ping'){
+		//message.reply(message.author.avatarURL)
+		message.reply('boop!!!!')
 	}
 
 	//mongodb init
