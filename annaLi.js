@@ -16,6 +16,7 @@ client.on('ready', () => {
 })
 
 client.on('message', message => {
+try{
 
 	let messageContent = message.content.toLowerCase()
 
@@ -54,8 +55,8 @@ client.on('message', message => {
 	if (messageContent.includes('leave') && message.author.bot === false){
 
 		const channel = message.member.voiceChannel
-		message.reply('QQ...')
 		channel.leave()
+		message.reply('QQ...')
 	}
 
 	if (messageContent.includes('test') && message.author.bot === false){
@@ -174,6 +175,11 @@ client.on('message', message => {
 	// 	//ends mongodb connection
 	// 	db.close()
 	// });
+}
+catch(err){
+	console.log(err)
+	message.reply('That didn\'t make sense 😵')
+}
 })
 
 const apiKey = require('./config/apiKey').apiKey
