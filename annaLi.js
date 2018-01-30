@@ -82,3 +82,6 @@ client.on('message', msg => {
 	});
 })
 
+const apiKey = require('./config/apiKey').apiKey
+
+client.login(apiKey)
