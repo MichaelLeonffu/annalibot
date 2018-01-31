@@ -144,7 +144,7 @@ try{
 			message.reply(pickRandomMessage(['heads','heads!','wow heads']))
 		}else{
 			console.log('coin flip landed on side!')
-			message.reply(pickRandomMessage(['IT LANDED ON IT\'S SIDE', 'Omg... it\'s on it\'s side!']))
+			message.reply(pickRandomMessage(['IT LANDED ON ITS SIDE', 'Omg... it\'s on its side!']))
 		}
 	}
 
