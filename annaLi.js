@@ -11,6 +11,11 @@ const math 			= require('mathjs')
 
 //const messages 		= require('./messages')
 
+let pickRandomMessage = function(arrayOfRandomMessages){
+	console.log('Using pickRandomMessage')
+	return arrayOfRandomMessages[math.round(math.random()*(arrayOfRandomMessages.length-1))]
+}
+
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`)
 })
@@ -44,7 +49,7 @@ try{
 
 		const responses = ['Yeah', 'Spooky', 'No.', 'baka', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
 
-		message.reply(responses[math.round(math.random()*(responses.length-1))])
+		message.reply(pickRandomMessage(responses))
 	}
 
 	//Anna Li can find your pic for you
@@ -98,7 +103,7 @@ try{
 		message.reply('I Test! :3c ')
 	}
 
-	if (messageContent.includes('join') && message.author.bot === false){
+	if(messageContent.includes('join') && message.author.bot === false){
 		console.log('join command detected')
 
 		const channel = message.member.voiceChannel	//Need to check if in voice channel
@@ -110,7 +115,46 @@ try{
 		}).catch(err =>{
 			console.log(err)
 		})
+	}
 
+	//LACKS PERMISSIONS
+	if(messageContent.includes('pink') && message.author.bot === false){
+		console.log('pink command detected')
+
+		// Set the color of a role of R:255, G:209, B:220
+		role.setColor([255,209,220]).then(r =>{
+			console.log(`Set color of role ${r}`)
+		}).catch(err =>{
+			console.log(err)
+		})
+
+		message.reply('pink? :3c')
+	}
+
+	if(messageContent.includes('flip') && message.author.bot === false){
+		console.log('flip command detected')
+
+		let coinFlip = math.random()
+
+		if(coinFlip < 0.49){
+			//tails
+			message.reply(pickRandomMessage(['tails','tails!','wow tails']))
+		}else if(coinFlip > 0.51){
+			//heads
+			message.reply(pickRandomMessage(['heads','heads!','wow heads']))
+		}else{
+			console.log('coin flip landed on side!')
+			message.reply(pickRandomMessage(['IT LANDED ON IT\'S SIDE', 'Omg... it\'s on it\'s side!']))
+		}
+	}
+
+	if(messageContent.includes('scan') && message.author.bot === false){
+		console.log('scan command detected')
+
+		console.log('SCAN-----------------------------------------\n',message.guild.roles.get('407709451534204928'))
+
+
+		message.reply('Scanning... 😀')
 	}
 
 	//mongodb init
