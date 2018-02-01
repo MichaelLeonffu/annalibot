@@ -32,17 +32,17 @@ try{
 	}
 
 	//ignore thses users
-	if(message.author.username == 'aFrenchToastMan'){
+	if(message.author.username == 'Toon'){
 		console.log('Ignored:', message.author.username)
 		return
 	}
 
 	//If username is toon then reply baka
-	if(message.author.username == 'Toon' && message.author.bot === false){
-		console.log('user:',message.author.username,'replying with: baka')
-		message.reply('BAKA!')
-		return
-	}
+	// if(message.author.username == 'Toon' && message.author.bot === false){
+	// 	console.log('user:',message.author.username,'replying with: baka')
+	// 	message.reply('BAKA!')
+	// 	return
+	// }
 
 	//If you ask anna a question
 	if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
