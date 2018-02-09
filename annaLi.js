@@ -1,3 +1,12 @@
+//Main Anna Li
+
+// const express 		= require('express')
+// const app			= express()
+// const path 			= require('path')
+// const port 			= process.env.PORT || 3000
+// const morgan 		= require('morgan')
+// const bodyParser 	= require('body-parser')
+
 const Discord 		= require("discord.js")
 const client 		= new Discord.Client()
 
@@ -6,6 +15,17 @@ const assert 		= require('assert')
 const url 			= 'mongodb://localhost:27017'
 
 const math 			= require('mathjs')
+
+// app.use(morgan('dev')) // log every request to the console
+// app.use(bodyParser.json())
+// app.use(bodyParser.urlencoded({
+// 	extended: true
+// }))
+
+// app.use(cookieParser())
+
+// app.listen(port)
+// console.log('Server started on port ' + port)
 
 //Importing libarays
 
@@ -37,6 +57,60 @@ try{
 		return
 	}
 
+	if(messageContent.includes('anna') && messageContent.includes('li') && message.author.bot === false){
+		MongoClient.connect(url, function(err,client){
+			var db = client.db('AnnaLi')
+			console.log('Connected to the AnnaLi database')
+			//var randomType = pickRandomMessage(['res_prefix','res_reaction','res_continue','res_end'])
+			//console.log('randomType',randomType)
+			db.collection('conversations').aggregate([
+				// {$match:{$expr:{
+				// 	$eq:['$type',randomType]
+				// }}},
+				{$match:{$expr:{$or:[
+					{$eq:['$type','res_prefix']},
+					{$eq:['$type','res_reaction']},
+					{$eq:['$type','res_continue']},
+					{$eq:['$type','res_end']}
+				]}}},
+				{$project:{
+					_id:0
+				}}
+				],cursorHandle
+			)
+
+			function cursorHandle(err, cursor){
+				if(err){
+					console.log(err)
+					return
+				}else{
+					cursor.toArray(messageFound)
+				}
+			}
+
+			function messageFound(err, messagesResponses){
+				if(err){
+					console.log(err)
+					client.close()
+					return
+				}
+				//console.log(messagesResponses)
+				var completeMessages = []
+				for (var i = 0; i < messagesResponses.length; i++) {
+					//messagesResponses[i]
+					for (var j = 0; j < messagesResponses[i].count; j++) {
+						completeMessages.push(messagesResponses[i].message)
+					}
+				}
+				//console.log('messagesResponses',completeMessages)
+
+				message.channel.send(pickRandomMessage(completeMessages))
+
+				client.close()
+			}
+		})
+	}
+
 	//If username is toon then reply baka
 	// if(message.author.username == 'Toon' && message.author.bot === false){
 	// 	console.log('user:',message.author.username,'replying with: baka')
@@ -45,12 +119,12 @@ try{
 	// }
 
 	//If you ask anna a question
-	if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
+	// if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
 
-		const responses = ['Yeah', 'Spooky', 'No.', 'baka', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
+	// 	const responses = ['Yeah', 'Spooky', 'No.', 'baka', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
 
-		message.reply(pickRandomMessage(responses))
-	}
+	// 	message.channel.send(pickRandomMessage(responses))
+	// }
 
 	//Anna Li can find your pic for you
 	if(messageContent.includes('mypic') && message.author.bot === false){
