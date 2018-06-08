@@ -57,7 +57,7 @@ try{
 		return
 	}
 
-	if(messageContent.includes('anna') && messageContent.includes('li') && message.author.bot === false){
+	if(false && messageContent.includes('anna') && messageContent.includes('li') && message.author.bot === false){
 		MongoClient.connect(url, function(err,client){
 			var db = client.db('AnnaLi')
 			console.log('Connected to the AnnaLi database')
