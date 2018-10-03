@@ -16,6 +16,8 @@ const url 			= 'mongodb://localhost:27017'
 
 const math 			= require('mathjs')
 
+const axios			= require('axios')
+
 // app.use(morgan('dev')) // log every request to the console
 // app.use(bodyParser.json())
 // app.use(bodyParser.urlencoded({
@@ -45,16 +47,21 @@ try{
 
 	let messageContent = message.content.toLowerCase()
 
+	//can i get an f
+	if ((messageContent.includes('f') && messageContent.includes(' chat') && messageContent.includes(' in')) && message.author.bot === false){
+		message.channel.send('f')
+	}
+
 	//Dont set messages in mainchat or weeb-meme-land
-	if(message.channel.name === 'mainchat' || message.channel.name === 'weeb-meme-land'){
+	if(message.channel.name === 'main-chat' || (message.author.username != 'Larypie' && message.channel.name === 'weeb-meme-land')){
 		console.log('Ignored:', message.channel.name)
 		return
 	}
 
 	//ignore thses users
 	if(message.author.username == 'Toon'){
-		console.log('Ignored:', message.author.username)
-		return
+		console.log('Igno--, wait jk; didn\'t ignore:', message.author.username)
+		// return
 	}
 
 	if(false && messageContent.includes('anna') && messageContent.includes('li') && message.author.bot === false){
@@ -131,10 +138,103 @@ try{
 		 message.reply(message.author.avatarURL)
 	}
 
+	//Anna Li can finds your pic for you
+	if(messageContent.includes('yourpic') && message.author.bot === false){
+
+		// console.log('mention', message.mentions.users.first())
+
+		message.channel.send(message.mentions.users.first().avatarURL)
+	}
+
+	if(messageContent.includes('anna li image ') && message.author.bot === false){
+
+		if(message.author.username != 'Larypie' && !message.channel.nsfw){
+			return message.channel.send('No lewd stufff!!!!!!')
+		}
+
+		// console.log("nsfw: ", message.channel.nsfw)
+		// var keyword = "kawaii,cat";
+		var keyword = messageContent.slice('anna li image '.length, messageContent.length)
+		console.log(keyword)
+		// function(data) {
+		// var rnd = Math.floor(Math.random() * data.items.length);
+
+		// var image_src = data.items[rnd]['media']['m'].replace("_m", "_b");
+
+		// $('body').css('background-image', "url('" + image_src + "')");
+
+		// axios.get('http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=tags:asian&tagmode:any&format:json').then((res) => {
+		// 	// console.log(xml2js.parseString(res.data))
+		// 	console.log(res.data)
+		// })tags=asian&tagmode=any&
+
+		axios.get('http://api.flickr.com/services/feeds/photos_public.gne?tags='+keyword+'&tagmode=any&format=json').then((res) => {
+			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
+			message.channel.send(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)).items[Math.floor((Math.random() * 7))].media.m)
+		})
+	}
+
+	if(messageContent.includes('anna li gif ') && message.author.bot === false){
+
+		// if(message.author.username != 'Larypie' && !message.channel.nsfw){
+		// 	return message.channel.send('No lewd stufff!!!!!!')
+		// }
+
+		// console.log("nsfw: ", message.channel.nsfw)
+		// var keyword = "kawaii,cat";
+		var keyword = messageContent.slice('anna li gif '.length, messageContent.length)
+		console.log(keyword)
+
+		axios.get('http://api.giphy.com/v1/gifs/random?api_key='+apiKeyGif+'&tag='+keyword+'&fmt=json').then((res) => {
+			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
+			// console.log(res.data.data.image_url)
+			message.channel.send(res.data.data.image_url)
+		}).catch((e) => {
+			console.log(e)
+			message.channel.send('Either I couldn\'t fint it or it doesn\'t exsist')
+		})
+	}
+
+	if(false && messageContent.includes('anna li tumblr ') && message.author.bot === false){
+
+		// if(message.author.username != 'Larypie' && !message.channel.nsfw){
+		// 	return message.channel.send('No lewd stufff!!!!!!')
+		// }
+
+		// console.log("nsfw: ", message.channel.nsfw)
+		// var keyword = "kawaii,cat";
+		var keyword = messageContent.slice('anna li tumblr '.length, messageContent.length)
+		console.log(keyword)
+		var num = messageContent.slice('anna li tumblr '.length, messageContent.length)
+
+		axios.get('https://api.tumblr.com/v2/tagged?api_key='+apiKeyTumblr+'&limit=20&tag='+keyword).then((res) => {
+			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
+			console.log("res", res.data.response)
+			for(var i = 0; i <= 20; i++){
+				if(res.data.response[i].type == 'photo'){
+					message.channel.send(res.data.response[i].post_url)
+					break
+				}
+			}
+		}).catch((e) => {
+			console.log(e)
+			message.channel.send('Either I couldn\'t fint it or it doesn\'t exsist')
+		})
+	}
+
+	// if(messageContent.includes('anna li cat') && message.author.bot === false){
+
+	// 	axios.get('http://random.cat').then((res) => {
+	// 		console.log(res)
+	// 		// message.channel.send(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)).items[Math.floor((Math.random() * 7))].media.m)
+	// 	})
+	// }
+
 	//You spooked an Anna Li! She boops you!
-	if (messageContent.includes('spooky') && message.author.bot === false){
+	if ((messageContent.includes('spooky') || messageContent.includes('spooked')) && message.author.bot === false){
 		console.log(message.author.username,'spookyed Anna Li!')
-		message.reply('boop!!!!')
+		// message.reply('boop!!!!')
+		message.react('👻')
 	}
 
 	//If Anna Li is in a call, she'll leave and be sad
@@ -175,6 +275,39 @@ try{
 		// 	.playFile('./test.mp3');
 		// const dispatcher = voiceConnection.playBroadcast(broadcast);
 		message.reply('I Test! :3c ')
+	}
+
+	if ((messageContent.includes('sad') || messageContent.includes('despacito')) && message.author.bot === false){
+
+		// message.reply('🙃')
+
+		try{
+			const channel = message.member.voiceChannel
+
+			channel.join().then(connection =>{
+				console.log(connection)
+				const dispatcher = connection.playFile('./despacito.m4a')
+				console.log('dispatcher', dispatcher.volumeLogarithmic)
+				dispatcher.setVolumeLogarithmic(0.15)
+				console.log('SETVOLUME', dispatcher.volumeLogarithmic)
+
+			}).catch(err =>{
+				console.log(err)
+			})
+
+		}catch(e){
+			message.channel.send('anna li hmmm')
+			return
+		}
+
+		message.channel.send('So sad... Playing despacito')
+	}
+
+	if (message.author.username == 'Larypie' && messageContent.includes('anna li say') && message.author.bot === false){
+
+		var ms = messageContent.replace('anna li say')
+
+		message.channel.send(ms.slice(10, ms.length))
 	}
 
 	if(messageContent.includes('join') && message.author.bot === false){
@@ -219,6 +352,18 @@ try{
 		}else{
 			console.log('coin flip landed on side!')
 			message.reply(pickRandomMessage(['IT LANDED ON ITS SIDE', 'Omg... it\'s on its side!']))
+		}
+	}
+
+	if(messageContent.includes('!') && message.mentions.users.first() && message.mentions.users.first().id == 407668467567820800 && message.author.bot === false){
+
+		let coinFlip = math.random()
+
+		if(coinFlip < 0.49){
+			message.reply('!!')
+		}else{
+			// message.reply(' :T')
+			message.reply('!!!')
 		}
 	}
 
@@ -303,10 +448,12 @@ try{
 }
 catch(err){
 	console.log(err)
-	message.reply('That didn\'t make sense 😵')
+	message.reply('🤔')
 }
 })
 
 const apiKey = require('./config/apiKey').apiKey
+const apiKeyGif = require('./config/apiKey').apiKeyGif
+const apiKeyTumblr = require('./config/apiKey').apiKeyTumblr
 
 client.login(apiKey)
