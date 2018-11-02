@@ -27,7 +27,7 @@ Thumbs.db
 
 # data
 /data/db
-/config/database.js
+/config.js
 /data/reasearchData
 /data/resources-private
 
