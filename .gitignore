@@ -29,6 +29,7 @@ Thumbs.db
 /data/db
 /config/database.js
 /data/reasearchData
+/data/resources-private
 
 # api key
 /config/apiKey.js
