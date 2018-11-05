@@ -36,6 +36,7 @@ client.login(config.apiKey.discord)
 
 })
 
+//allows new events to be easily be added
 function genericEventHandle(type, subType, event){
 	//code which does stuff to all events
 	switch(type){
@@ -86,3 +87,8 @@ function messageHandle(message){
 function messageDeleteHandle(message){
 	console.log(message.content + " LOL")
 }
+
+
+
+
+
