@@ -1,6 +1,6 @@
 {
 	"name": "annalibot",
-	"version": "3.0.0-beta",
+	"version": "3.1.0-beta",
 	"description": "Anna Li <3",
 	"main": "annaLi.js",
 	"scripts": {
