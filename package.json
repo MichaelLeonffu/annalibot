@@ -5,7 +5,8 @@
 	"main": "annaLi.js",
 	"scripts": {
 		"start": "node annali.js",
-		"dev": "nodemon annali.js"
+		"dev": "nodemon annali.js",
+		"nodemon": "nodemon"
 	},
 	"repository": {
 		"type": "git",
@@ -28,11 +29,11 @@
 		"discord.js": "^11.4.2",
 		"express": "^4.16.4",
 		"mathjs": "^3.20.2",
-		"mongodb": "^3.1.8",
+		"mongodb": "^3.1.9",
 		"opusscript": "0.0.6"
 	},
 	"devDependencies": {
 		"morgan": "^1.9.1",
-		"nodemon": "^1.18.5"
+		"nodemon": "^1.18.6"
 	}
 }
