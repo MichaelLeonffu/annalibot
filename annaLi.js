@@ -11,7 +11,32 @@ const assert 		= require('assert')
 const math 			= require('mathjs')
 const axios			= require('axios')
 
-const requests 		= require('./requests/requests')
+const pipeData 		= require('./pipes/pipes')
+
+//pipeline loader should exist: console logs as the pipes are being imported
+//creates a map of pipe ids to the pipe methods. by loading though each pipe
+
+const pipes = {}		///this is the final map
+
+function pipeLoader(){
+
+}
+
+//recusively finds all pipes from pipeData and adds it to the pipes 
+function pipeLoaderEngine(pipes, pipeData){
+
+	let keys = Object.keys(pipeData)							//gets all the keys of this object
+
+	for(let i = 0; i < keys.length; i++){						//for each key in the pipeData
+		if(typeof pipeData[keys[i]] == 'object')				//checks if it's an object
+			if(pipeData[keys[i]].run == undefined)				//checks if exsists
+				pipeLoaderEngine(pipes, pipeData[keys[i]])		//recusrively add more if incomplete
+			else if(typeof pipeData[keys[i]].run == 'function')	//checks if its a pipe
+				pipes[keys[i]] = pipeData[keys[i]]				//add the pipe
+			else;												//not a pipe! not an object!
+				//log it //TODO!
+	}
+}
 
 //Any things that need to be passed into all the rest of the code as sync should be placd here:
 function initialize(next){
@@ -72,6 +97,9 @@ function guildCreateHandle(db, guild){
 
 function genericMessageHandle(db, type, message, log){
 
+	if(message.guild.id != config.dev.server)
+		return console.log('SAVED THE DAY!')
+
 	//messages are always from channels, but sometimes from guilds.
 		//gather config information for this partucular event, this can be more generic latter.
 		//perhapse all events have users as such etc.
@@ -99,30 +127,77 @@ function genericMessageHandle(db, type, message, log){
 							_id: message.author.id
 						}, (err, user) =>{
 							if(err); //""
-							if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-users]: ', user)
-							
-							//code which does stuff to this particular event
-
-							let configs = {
-								guild: guild,
-								channel: channel,
-								user: user
-							}
-
-							pipelineGenerator(db, configs, log, 
-								(err, pipeline) =>{
-									// switch(type){
-									// 	case 'message': 		messageHandle(db, configs, pipeline, message, log); 		break
-									// 	case 'messageDelete': 	messageDeleteHandle(db, configs, pipeline, message);	break
-									// 	default: 				console.log('fail' + type)
-									// }
-
-									//use case of message and deleted message handle is to have any methods that work for either or all
-									//messagse of that type are handled. althoguh a pipe can be used, this will force it.
-									//i.e recording messages, if all messages should be recorded then it can go though the handle.
-
+							if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-user]: ', user)
+							db.collection('configurations').findOne(
+								{
+									_id: 'config.configurations.masterConfigID' //create
+								}, (err, configuration) =>{
 									if(err); //""
-									pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
+									if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-configuration]: ', configuration)
+
+									//code which does stuff to this particular event
+
+									//example one for now
+									let exampleConfiguration = {
+										requests:[
+											//object ids?
+											'todo'
+										]
+										// requests:[
+										// 	//overriding logic
+										// 	//maybe can be an object rather than an array?
+										// 	{
+										// 		name: 'addTodo',
+										// 		pipeline:[ //maybe can be an object rather than an array?
+
+										// 		]
+										// 	},
+										// 	{
+										// 		name: 'readTodo',
+										// 		pipeline:[ //maybe can be an object rather than an array?
+
+										// 		]
+										// 	}
+										// ]
+									}
+
+									configuration = exampleConfiguration
+
+									let configs = {
+										guild: guild,
+										channel: channel,
+										user: user,
+										masterConfig: configuration, //replace latter 
+										//REMOVE THIS LATTER
+									}
+
+									//CONFIGUREATION LOGIC HERE! its configs and datas.
+
+									let examplePipeline = [
+										{
+											'$messageInterpretToRequest':[
+												'$addTodo',
+												'$readTodo'
+											]
+										}
+									]
+
+									pipelineGenerator(db, configs, log, 
+										(err, pipeline) =>{
+											// switch(type){
+											// 	case 'message': 		messageHandle(db, configs, pipeline, message, log); 		break
+											// 	case 'messageDelete': 	messageDeleteHandle(db, configs, pipeline, message);	break
+											// 	default: 				console.log('fail' + type)
+											// }
+
+											//use case of message and deleted message handle is to have any methods that work for either or all
+											//messagse of that type are handled. althoguh a pipe can be used, this will force it.
+											//i.e recording messages, if all messages should be recorded then it can go though the handle.
+
+											if(err); //""
+											pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
+										}
+									)
 								}
 							)
 						}
@@ -150,9 +225,68 @@ function pipelineGenerator(db, configs, log, next){
 
 				let pipeline = [requests]
 
-				pipeline = ['DNEPipe', 'nullPipe', 'noBotReplyPipe', 'repeatAction']
+				let addTodo = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'addToTODO',
+						args: null
+					},
+					{
+						procedure: 'action',
+						type: 'message',
+						id: 'sendMessage',
+						args: null
+					}
+				]
 
-				console.log('\x1b[36m%s\x1b[0m', '[pipelineGenerator-pipline]: ', pipeline)
+				let readTodo = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'readFromTodo',
+						args: null
+					},
+					{
+						procedure: 'action',
+						type: 'message',
+						id: 'sendMessage',
+						args: null
+					}
+				]
+
+				let finalPipe = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'messageInterpretToRequest',
+						args: [addTodo, readTodo]
+					}
+				]
+
+				pipeline = finalPipe
+
+				//this can reflect the config better and be more consisce
+
+				loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineGenerator-pipline]', pipelineToString(pipeline))
 
 				err = null //change this to which ever errors if err
 
@@ -168,40 +302,49 @@ function pipelineEngine(db, pipeline, data, log){
 
 	//base case
 	if(pipeline.length <= 0)
+		return loggerAid(config.verbose.pipeline, 'info', 'red', '[pipelineEngine-pipline]', pipeline)
 		// return data.action(db, 'sendMessage', data, log) //should be error
-		return console.error('ERROROROROORROOR')
+		// return console.error('Pipe end! pipe should always escape before ending this way.')
 
-	//action case (good base case)
-	if(pipeline.length == 1)
-		return genericAction(db, pipeline.shift(), data, log)
+	let pipe = pipeline.shift()
 
-	pipelineManager(pipeline.shift())(db, data, log, (options) =>{
+	//pipe.args may be null!
+
+	pipelineManager(pipe)(db, data, log, pipe.args, (options) =>{ //pipes should throw "(err, data)" where in err can have warnings or escape etc
 		if(options.escape == true) //escape somehow!
 			return genericAction(db, 'escape!', 'data', log)
-		if(options.data != null)
-			data = options.data //this is how pipelines talk
+		if(options.pipeline != null && options.pipeline.length > 0){ //returns a pipeline; escape can escape if wanted
+			loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineEngine-pipeline][options-pipline-tiggered]', options.pipeline)
+			return pipelineEngine(db, options.pipeline, data, log) //REMOVE RETURN
+		}
 
-		pipelineEngine(db, pipeline, data, log)
+		loggerAid(config.verbose.pipeline, 'info', 'green', '[pipelineEngine-pipeline][continue]', pipelineToString(pipeline))
+
+		//NOTICE, the pipeline CAN be split into many: one evalutes the pipline above, the other
+			//finishes the main pipeline
+		pipelineEngine(db, pipeline, data, log) //this pipeline engine should end
 	})
 }
 
-function pipelineManager(pipeline){
+//finds and connects the pielines
+function pipelineManager(pipe){
 	//add logic
 
-	switch(pipeline){
-		case 'noBotReplyPipe': 	return noBotReplyPipe; 	break
-		default: 				return nullPipe;		break
-		// default: return console.error('Q W Q'); 		break
+	//check pipeline quality TODO
+
+	//temp
+	if(pipes[pipe.type] == undefined || pipes[pipe.type][pipe.procedure] == undefined || pipes[pipe.type][pipe.procedure][pipe.id] == undefined){
+		loggerAid(config.verbose.pipeline, 'warn', 'yellow', '[pipelineManager-pipe]', pipe)
+		return nullPipe
 	}
+
+	loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineManager-pipe]', pipelineToString(pipe))
+	return pipes[pipe.type][pipe.procedure][pipe.id].run //no need for switches
+
 }
 
 //the default empty could not find pipe option
-function nullPipe(db, data, log, next){
-	next({})
-}
-
-function noBotReplyPipe(db, data, log, next){
-	if(data.message.author.bot) 	return next({escape: true})
+function nullPipe(db, data, log, args, next){
 	next({})
 }
 
@@ -210,7 +353,7 @@ function genericAction(db, type, data, log){
 	switch(type){
 		case 'repeatAction': data.message.channel.send(data.message.content); 	break
 		// case 'repeatAction': console.info(data.message.content); 	break
-		default: 	console.error('LOL FIX THIS' + type); break
+		default: 	loggerAid(config.verbose.pipeline, 'error', 'red', '[genericAction-type]', type); break
 	}
 }
 
@@ -218,12 +361,53 @@ function sendMessage(db, data){
 
 }
 
+//recusion
+function pipelineToString(pipeline){
+	//base
+	if(pipeline.id != undefined) //or not an array
+		if(pipeline.args != undefined && pipeline.args != null) //meaning it containds pipelines
+			return '\x1b[35m' + pipeline.id + '\x1b[0m' + '(' + pipelineToString(pipeline.args) + ')]'
+		else
+			return '\x1b[35m' + pipeline.id + '\x1b[0m' + ']'
+	finalString = ''
+	for(let i = 0; i < pipeline.length; i++)
+		finalString += '[' + pipelineToString(pipeline[i]) + ((i == pipeline.length-1)? '' : ', ')
+	return finalString + ']'
+}
+
+//should log all into a logger file in portions... logger files should be named by instance? and running time.
+//perhapse saving the logger file as data? tho all data shoulg be logged anways... :shrug:
+//logger switcehs should be located here as well (from config)
+//defaults should also be located here where default switches r chosen if no cohsen switcehs r found
+//there is also ... 
+function loggerAid(option, level, color, tag, data){
+	if(option == false)
+		return
+	switch(color){
+		case 'cyan': 	color = '\x1b[36m%s\x1b[0m'; break
+		case 'red': 	color = '\x1b[31m%s\x1b[0m'; break
+		case 'black': 	color = '\x1b[30m%s\x1b[0m'; break
+		case 'green': 	color = '\x1b[32m%s\x1b[0m'; break
+		case 'yellow': 	color = '\x1b[33m%s\x1b[0m'; break
+		case 'blue': 	color = '\x1b[34m%s\x1b[0m'; break
+		case 'magenta': color = '\x1b[35m%s\x1b[0m'; break
+		case 'white': 	color = '\x1b[37m%s\x1b[0m'; break
+		default: color = ''; break //bad color
+	}
+	switch(level){
+		case 'error': 	console.error(color, tag, data); break
+		case 'info': 	console.info(color, tag, data); break
+		case 'warn': 	console.warn(color, tag, data); break
+		default: 		console.log(color, tag, data); break
+	}
+}
+
 function messageHandle(db, config, pipeline, message, log){
 	// console.log(message.content != null)
 	// console.warn(message.guild != null)
 	// console.error(message.channel != null)
 
-	pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
+	// pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
 
 	// genericAction(db, 'sendMessage', {message: message})
 
