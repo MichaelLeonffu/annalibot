@@ -8,5 +8,14 @@ module.exports = {
 		gif: 'super secert Anna Li gif Key ˚∆˚',
 		tumblr: 'super secert Anna Li tumblr Key ˚∆˚'
 	},
-	databaseURL: 'mongodb://annali:42'
+	mongodb:{
+		uri: 'mongodb://annali:42/',
+		db: 'databaseName'
+	},
+	verbose:{
+		mongodb:{
+			erors: false,
+			results: false	//design overriding 
+		}
+	}
 }

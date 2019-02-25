@@ -1,459 +1,437 @@
-//Main Anna Li
+//AnnaLi by Michael Leonffu
 
-// const express 		= require('express')
-// const app			= express()
-// const path 			= require('path')
-// const port 			= process.env.PORT || 3000
-// const morgan 		= require('morgan')
-// const bodyParser 	= require('body-parser')
+const config		= require('./config')
 
 const Discord 		= require("discord.js")
 const client 		= new Discord.Client()
 
 const MongoClient 	= require('mongodb').MongoClient
 const assert 		= require('assert')
-const url 			= 'mongodb://localhost:27017'
 
 const math 			= require('mathjs')
-
 const axios			= require('axios')
 
-// app.use(morgan('dev')) // log every request to the console
-// app.use(bodyParser.json())
-// app.use(bodyParser.urlencoded({
-// 	extended: true
-// }))
+const pipeData 		= require('./pipes/pipes')
 
-// app.use(cookieParser())
+//pipeline loader should exist: console logs as the pipes are being imported
+//creates a map of pipe ids to the pipe methods. by loading though each pipe
 
-// app.listen(port)
-// console.log('Server started on port ' + port)
+const pipes = {}		///this is the final map
 
-//Importing libarays
+function pipeLoader(){
 
-//const messages 		= require('./messages')
-
-let pickRandomMessage = function(arrayOfRandomMessages){
-	console.log('Using pickRandomMessage')
-	return arrayOfRandomMessages[math.round(math.random()*(arrayOfRandomMessages.length-1))]
 }
 
-client.on('ready', () => {
-	console.log(`Logged in as ${client.user.tag}!`)
+//recusively finds all pipes from pipeData and adds it to the pipes 
+function pipeLoaderEngine(pipes, pipeData){
+
+	let keys = Object.keys(pipeData)							//gets all the keys of this object
+
+	for(let i = 0; i < keys.length; i++){						//for each key in the pipeData
+		if(typeof pipeData[keys[i]] == 'object')				//checks if it's an object
+			if(pipeData[keys[i]].run == undefined)				//checks if exsists
+				pipeLoaderEngine(pipes, pipeData[keys[i]])		//recusrively add more if incomplete
+			else if(typeof pipeData[keys[i]].run == 'function')	//checks if its a pipe
+				pipes[keys[i]] = pipeData[keys[i]]				//add the pipe
+			else;												//not a pipe! not an object!
+				//log it //TODO!
+	}
+}
+
+//Any things that need to be passed into all the rest of the code as sync should be placd here:
+function initialize(next){
+	MongoClient.connect(config.mongodb.uri, function(err, client) {
+		assert.equal(null, err)
+		//TODO: add logic to attempt to reconnect until connection works, at every config X intervals
+		let db = client.db(config.mongodb.db)
+		next(db)
+	})
+}
+
+//initialize everything
+initialize((db) =>{
+
+	//change to genertic event handle
+	client.on('ready', 			() =>	{console.log(`Logged in as ${client.user.tag}!`)})
+
+	client.on('message', 		event =>{genericEvent(db, 'message', 	'message', 			event)})
+	client.on('messageDelete', 	event =>{genericEvent(db, 'message', 	'messageDelete', 	event)})
+	client.on('guildCreate', 	event =>{genericEvent(db, 'guild', 		'guildCreate', 		event)})
+
+	client.login(config.apiKey.discord)
+
 })
 
-client.on('message', message => {
-try{
+//allows new events to be easily be added
+function genericEvent(db, type, subType, event){
+	//code which does stuff to all events
 
-	let messageContent = message.content.toLowerCase()
+	db.collection('logs').insertOne(	//TODO finsih adding log to all the methods....
+		{
+			data: 'test',
+			time: new Date()
+		}, (err, result) =>{
+			if(err); //do something
+			console.time(result.insertedId) //start timer
+			let log = {logsId: result.insertedId}
+			switch(type){
+				case 'message': 	genericMessageHandle 	(db, subType, event, log);	break
+				case 'guild': 		genericGuildHandle		(db, subType, event, log);	break
+				default: 			console.log('fail generic EventHandel thingy' + type)
+			}
+		}
+	)
+}
 
-	//can i get an f
-	if ((messageContent.includes('f') && messageContent.includes(' chat') && messageContent.includes(' in')) && message.author.bot === false){
-		message.channel.send('f')
+function genericGuildHandle(db, type, guild, log){
+	//code which does stuff to this particular event
+	switch(type){
+		case 'guildCreate': 	guildCreateHandle(db, guild); 	break
+		default: 				console.log('fail' + type)
 	}
+}
 
-	//Dont set messages in mainchat or weeb-meme-land
-	if(message.channel.name === 'main-chat' || (message.author.username != 'Larypie' && message.channel.name === 'weeb-meme-land')){
-		console.log('Ignored:', message.channel.name)
-		return
-	}
+function guildCreateHandle(db, guild){
+	console.log(guild)
+}
 
-	//ignore thses users
-	if(message.author.username == 'Toon'){
-		console.log('Igno--, wait jk; didn\'t ignore:', message.author.username)
-		// return
-	}
+function genericMessageHandle(db, type, message, log){
 
-	if(false && messageContent.includes('anna') && messageContent.includes('li') && message.author.bot === false){
-		MongoClient.connect(url, function(err,client){
-			var db = client.db('AnnaLi')
-			console.log('Connected to the AnnaLi database')
-			//var randomType = pickRandomMessage(['res_prefix','res_reaction','res_continue','res_end'])
-			//console.log('randomType',randomType)
-			db.collection('conversations').aggregate([
-				// {$match:{$expr:{
-				// 	$eq:['$type',randomType]
-				// }}},
-				{$match:{$expr:{$or:[
-					{$eq:['$type','res_prefix']},
-					{$eq:['$type','res_reaction']},
-					{$eq:['$type','res_continue']},
-					{$eq:['$type','res_end']}
-				]}}},
-				{$project:{
-					_id:0
-				}}
-				],cursorHandle
+	if(message.guild.id != config.dev.server)
+		return console.log('SAVED THE DAY!')
+
+	//messages are always from channels, but sometimes from guilds.
+		//gather config information for this partucular event, this can be more generic latter.
+		//perhapse all events have users as such etc.
+	//meta information gatherers can be made as well such that certain databse calls shouldnt be needed
+
+	//TODO: add a timer, search by time then have a promise to get more data. this is quicker than complsing lots of data per message
+	//TODL: add a thing that deltays the resoionces which then it cna read new inputs and changethe reponses
+
+	// message.guild != null is false when guild is not present
+	// message.channel.id != null is false when TextChannel is returned. DMChannel and GroupDMChannel have ids
+	db.collection('guilds').findOne(	//EACH OF THESE SHOULD BE SEPERATE SUCH THAT OTHER "generric______" CAN REUSE THEM!
+		{
+			_id: message.guild != null ? message.guild.id : 'null' //techically should skip this aggregate.
+		}, (err, guild) =>{ //gathers guild information
+			if(err);	//add logger here
+			if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-guild]: ', guild)
+			db.collection('channels').findOne(
+				{
+					_id: message.channel.id != null ? message.channel.id : message.channel.parentID //has parentID for "TextChannel" part of guild
+				}, (err, channel) =>{
+					if(err); //add logger here too
+					if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-channel]: ', channel)
+					db.collection('users').findOne(
+						{
+							_id: message.author.id
+						}, (err, user) =>{
+							if(err); //""
+							if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-user]: ', user)
+							db.collection('configurations').findOne(
+								{
+									_id: 'config.configurations.masterConfigID' //create
+								}, (err, configuration) =>{
+									if(err); //""
+									if(config.verbose.mongodb.results) console.info('\x1b[36m%s\x1b[0m', '[genericMessageHandle-configuration]: ', configuration)
+
+									//code which does stuff to this particular event
+
+									//example one for now
+									let exampleConfiguration = {
+										requests:[
+											//object ids?
+											'todo'
+										]
+										// requests:[
+										// 	//overriding logic
+										// 	//maybe can be an object rather than an array?
+										// 	{
+										// 		name: 'addTodo',
+										// 		pipeline:[ //maybe can be an object rather than an array?
+
+										// 		]
+										// 	},
+										// 	{
+										// 		name: 'readTodo',
+										// 		pipeline:[ //maybe can be an object rather than an array?
+
+										// 		]
+										// 	}
+										// ]
+									}
+
+									configuration = exampleConfiguration
+
+									let configs = {
+										guild: guild,
+										channel: channel,
+										user: user,
+										masterConfig: configuration, //replace latter 
+										//REMOVE THIS LATTER
+									}
+
+									//CONFIGUREATION LOGIC HERE! its configs and datas.
+
+									let examplePipeline = [
+										{
+											'$messageInterpretToRequest':[
+												'$addTodo',
+												'$readTodo'
+											]
+										}
+									]
+
+									pipelineGenerator(db, configs, log, 
+										(err, pipeline) =>{
+											// switch(type){
+											// 	case 'message': 		messageHandle(db, configs, pipeline, message, log); 		break
+											// 	case 'messageDelete': 	messageDeleteHandle(db, configs, pipeline, message);	break
+											// 	default: 				console.log('fail' + type)
+											// }
+
+											//use case of message and deleted message handle is to have any methods that work for either or all
+											//messagse of that type are handled. althoguh a pipe can be used, this will force it.
+											//i.e recording messages, if all messages should be recorded then it can go though the handle.
+
+											if(err); //""
+											pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
+										}
+									)
+								}
+							)
+						}
+					)
+				}
 			)
+		}
+	)
+}
 
-			function cursorHandle(err, cursor){
-				if(err){
-					console.log(err)
-					return
-				}else{
-					cursor.toArray(messageFound)
-				}
-			}
+//generates the pipeline for the methods to use; doesn't need data to generate pipeline (I think!), CHECK LATTER TODO!
+function pipelineGenerator(db, configs, log, next){
+	//configs are given in varible amount? array, can have configs for server, guild, user, etc
+	//configs contains information on which piplines to use if any custom pipelines are made
 
-			function messageFound(err, messagesResponses){
-				if(err){
-					console.log(err)
-					client.close()
-					return
-				}
-				//console.log(messagesResponses)
-				var completeMessages = []
-				for (var i = 0; i < messagesResponses.length; i++) {
-					//messagesResponses[i]
-					for (var j = 0; j < messagesResponses[i].count; j++) {
-						completeMessages.push(messagesResponses[i].message)
+	//finds all the requiered requests which are mandatory by config file.
+	db.collection('requests').find(
+		{
+			$or:[{_id: 'hi'}]	//gathering the pipeline data using the configs
+		},(err, requestsData) =>{
+			if(err) return console.error('\x1b[31m%s\x1b[0m', '[pipelineGenerator-err]: ', err) //replace with ending sequence! using "log"
+
+			requestsData.toArray((err, requests) =>{
+				if(err);
+
+				let pipeline = [requests]
+
+				let addTodo = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'addToTODO',
+						args: null
+					},
+					{
+						procedure: 'action',
+						type: 'message',
+						id: 'sendMessage',
+						args: null
 					}
-				}
-				//console.log('messagesResponses',completeMessages)
+				]
 
-				message.channel.send(pickRandomMessage(completeMessages))
+				let readTodo = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'readFromTodo',
+						args: null
+					},
+					{
+						procedure: 'action',
+						type: 'message',
+						id: 'sendMessage',
+						args: null
+					}
+				]
 
-				client.close()
-			}
-		})
-	}
+				let finalPipe = [
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'noBotReplyPipe',
+						args: null
+					},
+					{
+						procedure: 'request',
+						type: 'message',
+						id: 'messageInterpretToRequest',
+						args: [addTodo, readTodo]
+					}
+				]
 
-	//If username is toon then reply baka
-	// if(message.author.username == 'Toon' && message.author.bot === false){
-	// 	console.log('user:',message.author.username,'replying with: baka')
-	// 	message.reply('BAKA!')
-	// 	return
-	// }
+				pipeline = finalPipe
 
-	//If you ask anna a question
-	// if(messageContent.includes('?') && messageContent.includes('anna') && message.author.bot === false){
+				//this can reflect the config better and be more consisce
 
-	// 	const responses = ['Yeah', 'Spooky', 'No.', 'baka', 'lol', 'k', 'nande?', 'NANI?', '¯\\_(ツ)_/¯', 'S a d...']
+				loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineGenerator-pipline]', pipelineToString(pipeline))
 
-	// 	message.channel.send(pickRandomMessage(responses))
-	// }
+				err = null //change this to which ever errors if err
 
-	//Anna Li can find your pic for you
-	if(messageContent.includes('mypic') && message.author.bot === false){
-		 message.reply(message.author.avatarURL)
-	}
-
-	//Anna Li can finds your pic for you
-	if(messageContent.includes('yourpic') && message.author.bot === false){
-
-		// console.log('mention', message.mentions.users.first())
-
-		message.channel.send(message.mentions.users.first().avatarURL)
-	}
-
-	if(messageContent.includes('anna li image ') && message.author.bot === false){
-
-		if(message.author.username != 'Larypie' && !message.channel.nsfw){
-			return message.channel.send('No lewd stufff!!!!!!')
-		}
-
-		// console.log("nsfw: ", message.channel.nsfw)
-		// var keyword = "kawaii,cat";
-		var keyword = messageContent.slice('anna li image '.length, messageContent.length)
-		console.log(keyword)
-		// function(data) {
-		// var rnd = Math.floor(Math.random() * data.items.length);
-
-		// var image_src = data.items[rnd]['media']['m'].replace("_m", "_b");
-
-		// $('body').css('background-image', "url('" + image_src + "')");
-
-		// axios.get('http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=tags:asian&tagmode:any&format:json').then((res) => {
-		// 	// console.log(xml2js.parseString(res.data))
-		// 	console.log(res.data)
-		// })tags=asian&tagmode=any&
-
-		axios.get('http://api.flickr.com/services/feeds/photos_public.gne?tags='+keyword+'&tagmode=any&format=json').then((res) => {
-			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
-			message.channel.send(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)).items[Math.floor((Math.random() * 7))].media.m)
-		})
-	}
-
-	if(messageContent.includes('anna li gif ') && message.author.bot === false){
-
-		// if(message.author.username != 'Larypie' && !message.channel.nsfw){
-		// 	return message.channel.send('No lewd stufff!!!!!!')
-		// }
-
-		// console.log("nsfw: ", message.channel.nsfw)
-		// var keyword = "kawaii,cat";
-		var keyword = messageContent.slice('anna li gif '.length, messageContent.length)
-		console.log(keyword)
-
-		axios.get('http://api.giphy.com/v1/gifs/random?api_key='+apiKeyGif+'&tag='+keyword+'&fmt=json').then((res) => {
-			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
-			// console.log(res.data.data.image_url)
-			message.channel.send(res.data.data.image_url)
-		}).catch((e) => {
-			console.log(e)
-			message.channel.send('Either I couldn\'t fint it or it doesn\'t exsist')
-		})
-	}
-
-	if(false && messageContent.includes('anna li tumblr ') && message.author.bot === false){
-
-		// if(message.author.username != 'Larypie' && !message.channel.nsfw){
-		// 	return message.channel.send('No lewd stufff!!!!!!')
-		// }
-
-		// console.log("nsfw: ", message.channel.nsfw)
-		// var keyword = "kawaii,cat";
-		var keyword = messageContent.slice('anna li tumblr '.length, messageContent.length)
-		console.log(keyword)
-		var num = messageContent.slice('anna li tumblr '.length, messageContent.length)
-
-		axios.get('https://api.tumblr.com/v2/tagged?api_key='+apiKeyTumblr+'&limit=20&tag='+keyword).then((res) => {
-			// console.log(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)))
-			console.log("res", res.data.response)
-			for(var i = 0; i <= 20; i++){
-				if(res.data.response[i].type == 'photo'){
-					message.channel.send(res.data.response[i].post_url)
-					break
-				}
-			}
-		}).catch((e) => {
-			console.log(e)
-			message.channel.send('Either I couldn\'t fint it or it doesn\'t exsist')
-		})
-	}
-
-	// if(messageContent.includes('anna li cat') && message.author.bot === false){
-
-	// 	axios.get('http://random.cat').then((res) => {
-	// 		console.log(res)
-	// 		// message.channel.send(JSON.parse(res.data.slice('jsonFlickrFeed('.length, res.data.length-1)).items[Math.floor((Math.random() * 7))].media.m)
-	// 	})
-	// }
-
-	//You spooked an Anna Li! She boops you!
-	if ((messageContent.includes('spooky') || messageContent.includes('spooked')) && message.author.bot === false){
-		console.log(message.author.username,'spookyed Anna Li!')
-		// message.reply('boop!!!!')
-		message.react('👻')
-	}
-
-	//If Anna Li is in a call, she'll leave and be sad
-	if (messageContent.includes('leave') && message.author.bot === false){
-
-		const channel = message.member.voiceChannel
-		channel.leave()
-		message.reply('QQ...')
-	}
-
-	if (messageContent.includes('test') && message.author.bot === false){
-
-		// console.log('CONSOLELOG----------------------------\n', client.emojis.get('318986211379118081'))
-		// console.log('NUMBER2----------------------------\n', client.emojis.find('name','spooky'))
-
-		//const spooky = client.emojis.find('name','spooky')
-		//const spooky = client.emojis.get('407735054425653248')
-
-
-		message.reply('🙃')
-
-		const channel = message.member.voiceChannel
-
-		channel.join().then(connection =>{
-			console.log(connection)
-			const dispatcher = connection.playFile('./nya.mp3')
-			console.log('dispatcher', dispatcher.volumeLogarithmic)
-			dispatcher.setVolumeLogarithmic(0.10)
-			console.log('SETVOLUME', dispatcher.volumeLogarithmic)
-
-		}).catch(err =>{
-			console.log(err)
-		})
-
-		// Play a broadcast
-		// const broadcast = client
-		// 	.createVoiceBroadcast()
-		// 	.playFile('./test.mp3');
-		// const dispatcher = voiceConnection.playBroadcast(broadcast);
-		message.reply('I Test! :3c ')
-	}
-
-	if ((messageContent.includes('sad') || messageContent.includes('despacito')) && message.author.bot === false){
-
-		// message.reply('🙃')
-
-		try{
-			const channel = message.member.voiceChannel
-
-			channel.join().then(connection =>{
-				console.log(connection)
-				const dispatcher = connection.playFile('./despacito.m4a')
-				console.log('dispatcher', dispatcher.volumeLogarithmic)
-				dispatcher.setVolumeLogarithmic(0.15)
-				console.log('SETVOLUME', dispatcher.volumeLogarithmic)
-
-			}).catch(err =>{
-				console.log(err)
+				next(err, pipeline)
 			})
-
-		}catch(e){
-			message.channel.send('anna li hmmm')
-			return
 		}
-
-		message.channel.send('So sad... Playing despacito')
-	}
-
-	if (message.author.username == 'Larypie' && messageContent.includes('anna li say') && message.author.bot === false){
-
-		var ms = messageContent.replace('anna li say')
-
-		message.channel.send(ms.slice(10, ms.length))
-	}
-
-	if(messageContent.includes('join') && message.author.bot === false){
-		console.log('join command detected')
-
-		const channel = message.member.voiceChannel	//Need to check if in voice channel
-
-		channel.join().then(connection =>{
-			//console.log(connection)
-			console.log('Message detected in:', message.channel.name)
-			message.reply('I joined ;) ')
-		}).catch(err =>{
-			console.log(err)
-		})
-	}
-
-	//LACKS PERMISSIONS
-	if(messageContent.includes('pink') && message.author.bot === false){
-		console.log('pink command detected')
-
-		// Set the color of a role of R:255, G:209, B:220
-		role.setColor([255,209,220]).then(r =>{
-			console.log(`Set color of role ${r}`)
-		}).catch(err =>{
-			console.log(err)
-		})
-
-		message.reply('pink? :3c')
-	}
-
-	if(messageContent.includes('flip') && message.author.bot === false){
-		console.log('flip command detected')
-
-		let coinFlip = math.random()
-
-		if(coinFlip < 0.49){
-			//tails
-			message.reply(pickRandomMessage(['tails','tails!','wow tails']))
-		}else if(coinFlip > 0.51){
-			//heads
-			message.reply(pickRandomMessage(['heads','heads!','wow heads']))
-		}else{
-			console.log('coin flip landed on side!')
-			message.reply(pickRandomMessage(['IT LANDED ON ITS SIDE', 'Omg... it\'s on its side!']))
-		}
-	}
-
-	if(messageContent.includes('!') && message.mentions.users.first() && message.mentions.users.first().id == 407668467567820800 && message.author.bot === false){
-
-		let coinFlip = math.random()
-
-		if(coinFlip < 0.49){
-			message.reply('!!')
-		}else{
-			// message.reply(' :T')
-			message.reply('!!!')
-		}
-	}
-
-	if(messageContent.includes('scan') && message.author.bot === false){
-		console.log('scan command detected')
-
-		console.log('SCAN-----------------------------------------\n',message.guild.roles.get('407709451534204928'))
-
-
-		message.reply('Scanning... 😀')
-	}
-
-	//mongodb init
-	// MongoClient.connect(url, function(err, db) {
-	// 	assert.equal(null, err);
-	// 	var collection = db.collection('todo')
-
-	// 	switch (msg.content.toLowerCase()) {
-	// 		case 'l!todo':
-	// 		collection.aggregate([
-	// 			{$sort:{name:1}}
-	// 		],
-	// 			function(err, docs){
-	// 			assert.equal(null, err);
-	// 				console.log('AGGERGATION',docs)
-	// 				for (var i = 0; i < docs.length; i++) {
-	// 					msg.reply(docs[i].todo)
-	// 				}
-	// 			}
-	// 		)
-
-	// 		break;
-	// 		default:
-	// 		console.log('did not detect message')
-	// 		break;
-	// 	}
-	// 	if (msg.content.toLowerCase() === 'ping') {
-	// 		console.log('detected ping yay')
-	// 		msg.reply('Pong!')
-	// 		msg.delete(5000)
-	// 		console.log('detleted pong')
-	// 	}
-
-	// 	if (msg.content.toLowerCase().includes('Pong!')) {
-	// 		console.log('DETECTED PONG',msg.content.toLowerCase())
-	// 		msg.delete(1000)
-	// 	}
-
-	// 	// console.log('msg', msg)
-	// 	// var toLog = msg.constructor
-	// 	// console.log('msgpart', toLog)
-	// 	// console.log('typeof', typeof toLog)
-
-	// 	// db.collection('msg').insertOne({'message':msg},
-	// 	//  function(err, result){ 
-	// 	//    assert.equal(err, null)
-	// 	//    console.log("Inserting doc")
-	// 	//  }
-	// 	// )
-
-	// 	var message = msg.content.toLowerCase()
-	// 	console.log(message)
-	// 	if(message.includes('l!addtodo ')){
-	// 		message = message.replace('l!addtodo ','')
-	// 		console.log(message)
-	// 		msg.reply(message)
-
-	// 		var docToInsert = {
-	// 			todo: message
-	// 		}
-	// 		collection.insertOne(docToInsert,
-	// 			function(err, result){ 
-	// 				assert.equal(err, null)
-	// 				console.log("Inserting doc", docToInsert)
-	// 			}
-	// 		)
-	// 	}
-
-	// 	//ends mongodb connection
-	// 	db.close()
-	// });
+	)
 }
-catch(err){
-	console.log(err)
-	message.reply('🤔')
+
+//recursively
+function pipelineEngine(db, pipeline, data, log){
+	//runs the pipelines.... boop beep
+
+	//base case
+	if(pipeline.length <= 0)
+		return loggerAid(config.verbose.pipeline, 'info', 'red', '[pipelineEngine-pipline]', pipeline)
+		// return data.action(db, 'sendMessage', data, log) //should be error
+		// return console.error('Pipe end! pipe should always escape before ending this way.')
+
+	let pipe = pipeline.shift()
+
+	//pipe.args may be null!
+
+	pipelineManager(pipe)(db, data, log, pipe.args, (options) =>{ //pipes should throw "(err, data)" where in err can have warnings or escape etc
+		if(options.escape == true) //escape somehow!
+			return genericAction(db, 'escape!', 'data', log)
+		if(options.pipeline != null && options.pipeline.length > 0){ //returns a pipeline; escape can escape if wanted
+			loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineEngine-pipeline][options-pipline-tiggered]', options.pipeline)
+			return pipelineEngine(db, options.pipeline, data, log) //REMOVE RETURN
+		}
+
+		loggerAid(config.verbose.pipeline, 'info', 'green', '[pipelineEngine-pipeline][continue]', pipelineToString(pipeline))
+
+		//NOTICE, the pipeline CAN be split into many: one evalutes the pipline above, the other
+			//finishes the main pipeline
+		pipelineEngine(db, pipeline, data, log) //this pipeline engine should end
+	})
 }
-})
 
-const apiKey = require('./config/apiKey').apiKey
-const apiKeyGif = require('./config/apiKey').apiKeyGif
-const apiKeyTumblr = require('./config/apiKey').apiKeyTumblr
+//finds and connects the pielines
+function pipelineManager(pipe){
+	//add logic
 
-client.login(apiKey)
+	//check pipeline quality TODO
+
+	//temp
+	if(pipes[pipe.type] == undefined || pipes[pipe.type][pipe.procedure] == undefined || pipes[pipe.type][pipe.procedure][pipe.id] == undefined){
+		loggerAid(config.verbose.pipeline, 'warn', 'yellow', '[pipelineManager-pipe]', pipe)
+		return nullPipe
+	}
+
+	loggerAid(config.verbose.pipeline, 'info', 'cyan', '[pipelineManager-pipe]', pipelineToString(pipe))
+	return pipes[pipe.type][pipe.procedure][pipe.id].run //no need for switches
+
+}
+
+//the default empty could not find pipe option
+function nullPipe(db, data, log, args, next){
+	next({})
+}
+
+//this is how all things should end, with an action.
+function genericAction(db, type, data, log){
+	switch(type){
+		case 'repeatAction': data.message.channel.send(data.message.content); 	break
+		// case 'repeatAction': console.info(data.message.content); 	break
+		default: 	loggerAid(config.verbose.pipeline, 'error', 'red', '[genericAction-type]', type); break
+	}
+}
+
+function sendMessage(db, data){
+
+}
+
+//recusion
+function pipelineToString(pipeline){
+	//base
+	if(pipeline.id != undefined) //or not an array
+		if(pipeline.args != undefined && pipeline.args != null) //meaning it containds pipelines
+			return '\x1b[35m' + pipeline.id + '\x1b[0m' + '(' + pipelineToString(pipeline.args) + ')]'
+		else
+			return '\x1b[35m' + pipeline.id + '\x1b[0m' + ']'
+	finalString = ''
+	for(let i = 0; i < pipeline.length; i++)
+		finalString += '[' + pipelineToString(pipeline[i]) + ((i == pipeline.length-1)? '' : ', ')
+	return finalString + ']'
+}
+
+//should log all into a logger file in portions... logger files should be named by instance? and running time.
+//perhapse saving the logger file as data? tho all data shoulg be logged anways... :shrug:
+//logger switcehs should be located here as well (from config)
+//defaults should also be located here where default switches r chosen if no cohsen switcehs r found
+//there is also ... 
+function loggerAid(option, level, color, tag, data){
+	if(option == false)
+		return
+	switch(color){
+		case 'cyan': 	color = '\x1b[36m%s\x1b[0m'; break
+		case 'red': 	color = '\x1b[31m%s\x1b[0m'; break
+		case 'black': 	color = '\x1b[30m%s\x1b[0m'; break
+		case 'green': 	color = '\x1b[32m%s\x1b[0m'; break
+		case 'yellow': 	color = '\x1b[33m%s\x1b[0m'; break
+		case 'blue': 	color = '\x1b[34m%s\x1b[0m'; break
+		case 'magenta': color = '\x1b[35m%s\x1b[0m'; break
+		case 'white': 	color = '\x1b[37m%s\x1b[0m'; break
+		default: color = ''; break //bad color
+	}
+	switch(level){
+		case 'error': 	console.error(color, tag, data); break
+		case 'info': 	console.info(color, tag, data); break
+		case 'warn': 	console.warn(color, tag, data); break
+		default: 		console.log(color, tag, data); break
+	}
+}
+
+function messageHandle(db, config, pipeline, message, log){
+	// console.log(message.content != null)
+	// console.warn(message.guild != null)
+	// console.error(message.channel != null)
+
+	// pipelineEngine(db, pipeline, {message: message, action: genericAction}, log)
+
+	// genericAction(db, 'sendMessage', {message: message})
+
+	return
+	console.log('log')
+	console.info('info')
+	console.warn('warn')
+	console.error('error')
+	// console.clear()
+	// console.table([[1,2,3,4],[1,2,3,3,1,1],[1,2,3,1,1,2,3]])
+	console.group('somegroup')
+	console.time('timer1')
+	console.timeLog('timer1', '')
+	console.timeEnd('timer1')
+	console.timeLog('timer1')
+	console.timeEnd('timer1')
+	console.assert(false, 'PIGS FLY')
+	console.assert(true)
+	console.groupEnd('somegroup')
+}
+
+function messageDeleteHandle(db, config, pipeline, message){
+	console.log(message.content + " Deleted!")
+}
+
+
+
