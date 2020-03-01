@@ -26,14 +26,14 @@
 	"homepage": "https://github.com/MichaelLeonffu/annalibot#readme",
 	"dependencies": {
 		"axios": "^0.19.2",
-		"discord.js": "^11.4.2",
-		"express": "^4.16.4",
+		"discord.js": "^11.6.1",
+		"express": "^4.17.1",
 		"mathjs": "^3.20.2",
-		"mongodb": "^3.1.13",
+		"mongodb": "^3.5.4",
 		"opusscript": "0.0.6"
 	},
 	"devDependencies": {
 		"morgan": "^1.9.1",
-		"nodemon": "^1.18.10"
+		"nodemon": "^1.19.4"
 	}
 }
