@@ -2,10 +2,10 @@
 	"name": "annalibot",
 	"version": "3.1.0-beta",
 	"description": "Anna Li <3",
-	"main": "annaLi.js",
+	"main": "realAnnaLi.js",
 	"scripts": {
 		"start": "node annali.js",
-		"dev": "nodemon annali.js",
+		"dev": "nodemon",
 		"nodemon": "nodemon"
 	},
 	"repository": {
@@ -25,7 +25,7 @@
 	},
 	"homepage": "https://github.com/MichaelLeonffu/annalibot#readme",
 	"dependencies": {
-		"axios": "^0.17.1",
+		"axios": "^0.19.2",
 		"discord.js": "^11.4.2",
 		"express": "^4.16.4",
 		"mathjs": "^3.20.2",
