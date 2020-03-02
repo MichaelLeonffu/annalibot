@@ -13,11 +13,30 @@ client.on('ready', () => {
 var channelAttach
 
 var gameEnable = false
+var toggleCommand = false
 
 client.on('message', message => {
 
-	if(message.content[0] == ';'){
+	//configure command toggleing
+	if(message.content == "toggle command"){
+		toggleCommand = !toggleCommand
 		return;
+	}
+
+	//if message starts with ; in normal operations skip it
+	if(!toggleCommand){
+		//normal, then ;TEXT is a comment
+		if(message.content[0] == ';'){
+			return;
+		}
+	}else{
+		//not normal, then ;TEXT is a command
+		if(message.content[0] != ';'){
+			return;
+		}
+
+		//remoev the first ;
+		message.content = message.content.substring(1);
 	}
 
 	if(message.content.includes("game pause")){
