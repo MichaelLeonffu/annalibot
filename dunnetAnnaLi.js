@@ -16,6 +16,10 @@ var gameEnable = false
 
 client.on('message', message => {
 
+	if(message.content[0] == ';'){
+		return;
+	}
+
 	if(message.content.includes("game pause")){
 		gameEnable = false
 		message.react('⏸️')
