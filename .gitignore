@@ -33,3 +33,6 @@ Thumbs.db
 
 # api key
 /config/apiKey.js
+
+# save file
+game_save
