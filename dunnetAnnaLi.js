@@ -44,7 +44,7 @@ client.on('message', message => {
 			4. "save": saves game, only one save file
 				!This only works when game is not paused
 
-			5. "restore game": restores the game
+			5. "restore": restores the game
 				!This only works when game is not paused
 
 			6. "lock on this channel": locks onto this channel
@@ -83,6 +83,13 @@ client.on('message', message => {
 	if(gameEnable && channelAttach != undefined && message.channel == channelAttach){
 		//once we have locked on to a channel
 		//then forward the contetns of its message out
+
+		if(message.content.trim().substring(0, 4) == 'save')
+			message.content = "save game_save"
+
+		if(message.content.trim().substring(0, 7) == 'restore')
+			message.content = "restore game_save"
+
 		console.log(message.content)
 	}
 
