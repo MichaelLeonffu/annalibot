@@ -17,6 +17,42 @@ var toggleCommand = false
 
 client.on('message', message => {
 
+	//ignore the bot messages
+	if(message.author.bot){
+		return;
+	}
+
+	//help
+	if(message.content == "anna li help me!"){
+		message.reply(`
+			Ok so you wanted some sort of help!
+			Well, in that case you're in for a suprise!
+
+			0. "anna li help me!": shows this help. Helpful.
+
+			1. "toggle command": toggles if ';' is a command/comment
+				Default ; is a comment
+				This will modify commands below here
+
+				Use: "game startu" is a command
+					";this is a comment" is a comment
+
+			2. "game pause": pauses game
+
+			3. "game startu": starts game again (if not already)
+
+			4. "save": saves game, only one save file
+				!This only works when game is not paused
+
+			5. "restore game": restores the game
+				!This only works when game is not paused
+
+			6. "lock on this channel": locks onto this channel
+				Game will only work on this channel but commands work anywhere.
+		`)
+		return;
+	}
+
 	//configure command toggleing
 	if(message.content == "toggle command"){
 		toggleCommand = !toggleCommand
@@ -44,7 +80,7 @@ client.on('message', message => {
 		message.react('⏸️')
 	}
 
-	if(gameEnable && channelAttach != undefined && !message.author.bot && message.channel == channelAttach){
+	if(gameEnable && channelAttach != undefined && message.channel == channelAttach){
 		//once we have locked on to a channel
 		//then forward the contetns of its message out
 		console.log(message.content)
