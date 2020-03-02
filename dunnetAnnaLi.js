@@ -16,6 +16,11 @@ var gameEnable = false
 
 client.on('message', message => {
 
+	if(message.content.includes("game pause")){
+		gameEnable = false
+		message.react('⏸️')
+	}
+
 	if(gameEnable && channelAttach != undefined && !message.author.bot && message.channel == channelAttach){
 		//once we have locked on to a channel
 		//then forward the contetns of its message out
@@ -24,17 +29,11 @@ client.on('message', message => {
 
 	if(message.content.includes("game startu")){
 		gameEnable = true
-		message.react('⏸️')
-	}
-
-	if(message.content.includes("game pause")){
-		gameEnable = false
 		message.react('⏯')
 	}
 
-
 	if(message.content.includes("lock on this channel") ){
-		console.log("channel attached to")
+		// console.log("channel attached to")
 		channelAttach = message.channel
 		message.reply("🔒 channel has been locked on to 🔒")
 	}
