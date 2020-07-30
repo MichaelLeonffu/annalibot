@@ -117,9 +117,6 @@ var standard_input = process.stdin;
 // Set input character encoding.
 standard_input.setEncoding('utf-8');
 
-// Prompt user to input data in console.
-console.log("Please input text in command line.");
-
 // When user input data and click enter key.
 standard_input.on('data', function (data) {
 
@@ -133,6 +130,6 @@ standard_input.on('data', function (data) {
     	if(channelAttach != undefined)
         // Print user input in console.
         // console.log('User Input Data : ' + data);
-       		channelAttach.send(data)
+       		channelAttach.send('```\n' + data + '\n```')
     }
 });
