@@ -7,8 +7,25 @@ import discord
 from discord.ext import commands
 # Pretty print
 # import pprint
-# # regex
+# Regex
 # import re
+# Time
+import time
+# Context
+import contextvars as ctxvar
+# Async
+import asyncio
+
+
+# Time keeping
+time_start_var = ctxvar.ContextVar('time_start')
+time_start_var.set(time.time())
+
+def time_pretty(dTime):
+	hours, remainder = divmod(dTime, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
+
 
 
 # The client
@@ -23,14 +40,18 @@ client = commands.Bot(
 async def test(ctx, *args):
 	await ctx.send('{} arguments: {}'.format(len(args), ', '.join(args)))
 
+@client.command(name='time')
+async def _time(ctx):
+	await ctx.send(time_pretty(time.time() - time_start_var.get()))
+
 @client.command(name='add')
 async def _add(ctx, a: int, b: int):
 	await ctx.send(a + b)
 
 @_add.error
 async def _add_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
-        await ctx.send(error)
+	if isinstance(error, commands.BadArgument):
+		await ctx.send(error)
 
 # @client.command(name='eval')
 # @commands.is_owner()
@@ -46,6 +67,46 @@ async def _add_error(ctx, error):
 async def on_ready():
 	print(f'{client.user} has connected to Discord!')
 
+
+@client.command()
+async def pages(ctx):
+    contents = ["This is page 1!", "This is page 2!", "This is page 3!", "This is page 4!"]
+    pages = 4
+    cur_page = 1
+    message = await ctx.send(f"Page {cur_page}/{pages}:\n{contents[cur_page-1]}")
+    # getting the message object for editing and reacting
+
+    await message.add_reaction("◀️")
+    await message.add_reaction("▶️")
+
+    def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
+        # This makes sure nobody except the command sender can interact with the "menu"
+
+    while True:
+        try:
+            reaction, user = await client.wait_for("reaction_add", timeout=60, check=check)
+            # waiting for a reaction to be added - times out after x seconds, 60 in this
+            # example
+
+            if str(reaction.emoji) == "▶️" and cur_page != pages:
+                cur_page += 1
+                await message.edit(content=f"Page {cur_page}/{pages}:\n{contents[cur_page-1]}")
+                await message.remove_reaction(reaction, user)
+
+            elif str(reaction.emoji) == "◀️" and cur_page > 1:
+                cur_page -= 1
+                await message.edit(content=f"Page {cur_page}/{pages}:\n{contents[cur_page-1]}")
+                await message.remove_reaction(reaction, user)
+
+            else:
+                await message.remove_reaction(reaction, user)
+                # removes reactions if the user tries to go forward on the last page or
+                # backwards on the first page
+        except asyncio.TimeoutError:
+            await message.delete()
+            break
+            # ending the loop if user doesn't react after x seconds
 
 
 # @client.event
