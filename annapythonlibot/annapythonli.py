@@ -30,30 +30,53 @@ def time_pretty(dTime):
 
 # The client
 # client = discord.Client()
-client = commands.Bot(
-	command_prefix	= ('^','%'),
+# The bot
+bot = commands.Bot(
+	command_prefix	= ('!', '%', 'a!', 'annali!', 'annali'),
 	activity		= discord.Game(name="with fire")
 )
 
 # Commands
-@client.command()
-async def test(ctx, *args):
+@bot.command()
+async def test(ctx, *args, hidden=True):
 	await ctx.send('{} arguments: {}'.format(len(args), ', '.join(args)))
 
-@client.command(name='time')
+@bot.command(
+	name='time',
+	aliases=['t'],
+	brief='How long Anna Li has been running',
+	description='The amount of time hr:min:sec Anna Li has been running',
+	help='(More like the amount of time Anna Li bot has not been updated',
+	usage='%time')
 async def _time(ctx):
 	await ctx.send(time_pretty(time.time() - time_start_var.get()))
 
-@client.command(name='add')
+@bot.command(
+	name='add',
+	aliases=['a'],
+	brief='Adds two numbers',
+	description='So I\' hear that you wana add two numbers ;)',
+	help='Well, with the `add` command you can do just that!',
+	usage='%add(int a, int b)')
 async def _add(ctx, a: int, b: int):
 	await ctx.send(a + b)
+
+@bot.command(
+	name='mul',
+	aliases=['m'],
+	brief='Mulitplies two numbers',
+	description='So I\' hear that you wana multiply two numbers ;)',
+	help='Well, with the `mul` command you can do just that!',
+	usage='%mul(int a, int b)')
+async def _mul(ctx, a: int, b: int):
+	await ctx.send(a * b)
 
 @_add.error
 async def _add_error(ctx, error):
 	if isinstance(error, commands.BadArgument):
 		await ctx.send(error)
 
-# @client.command(name='eval')
+# @bot.command(name='eval')
 # @commands.is_owner()
 # async def _eval(ctx, *, code):
 # 	"""A bad example of an eval command"""
@@ -62,13 +85,13 @@ async def _add_error(ctx, error):
 
 # Handles events (functions that take care of events that happen)
 
-@client.event
+@bot.event
 # When the bot connects to discord
 async def on_ready():
-	print(f'{client.user} has connected to Discord!')
+	print(f'{bot.user} has connected to Discord!')
 
 
-@client.command()
+@bot.command()
 async def pages(ctx):
     contents = ["This is page 1!", "This is page 2!", "This is page 3!", "This is page 4!"]
     pages = 4
@@ -85,7 +108,7 @@ async def pages(ctx):
 
     while True:
         try:
-            reaction, user = await client.wait_for("reaction_add", timeout=60, check=check)
+            reaction, user = await bot.wait_for("reaction_add", timeout=60, check=check)
             # waiting for a reaction to be added - times out after x seconds, 60 in this
             # example
 
@@ -107,6 +130,14 @@ async def pages(ctx):
             await message.delete()
             break
             # ending the loop if user doesn't react after x seconds
+
+
+# # HELP
+
+# # Remove the default help (here by default)
+# bot.remove_command('help')
+
+# # Add custom help command
 
 
 # @client.event
@@ -243,4 +274,4 @@ async def pages(ctx):
 # 		return
 
 # Connect the client to discord
-client.run(DISCORD_TOKEN)
+bot.run(DISCORD_TOKEN)
