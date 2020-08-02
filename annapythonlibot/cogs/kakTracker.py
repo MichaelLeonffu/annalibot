@@ -3,11 +3,19 @@
 # Tracking kakera
 
 
-# # Config
-# import config.config as config
+# Config
+import config.config as config
 # This is the discord
 import discord
 from discord.ext import commands
+# Pretty print
+# import pprint
+# Regex
+import re
+# json
+import json
+# Async
+import asyncio
 
 
 # Our track cog
@@ -18,150 +26,172 @@ class TrackCog(commands.Cog, name="Tracking"):
 	def __init__(self, bot):
 		self.bot = bot
 
+		# # Config
+		# self.CONFIG_var = ctxvar.ContextVar('CONFIG')
+		# self.CONFIG_var.set(config)
 
-# # Config
-# CONFIG_var = ctxvar.ContextVar('CONFIG')
-# CONFIG_var.set(config)
-
-
-# Attempt to read emotes for tracking rolls
-# @bot.listen('on_message')
-# async def _on_message_tracking(message):
-
-# 	await message.channel.send("trace complete" + str(message))
-
-# @client.event
-# # When the bot gets a message
-# async def on_message(message):
-
-# 	# BASICS
-
-# 	# If the bot is reading it's own message
-# 	if message.author == client.user:
-# 		return
-
-# 	# Lock on this channel only
-# 	if message.content == "lock on this channel":
-# 		client.my_channel = message.channel
-# 		await message.channel.send("Locked on: " + str(client.my_channel))
-# 		return
-
-# 	# The block
-# 	if message.channel != client.my_channel:
-# 		return
+		with open("data.json", "r") as file:
+			dataJSON = json.loads(file.read())
 
 
-# 	# :kakeraT:
+		# Data
+		self.data = {
+			'channel': None,
+			'last_user': None,
+			'data': dataJSON
+		}
 
-# 	if len(message.embeds) > 0:
-# 		pprint.pprint(message.embeds[0].to_dict()['description'])
-	
+		# Constants
+		self.ROLL_COMMANDS = ["$" + a + b for a in "whm" for b in list("abg") + ['']]
 
-# 	# CORE
+		self.KAKERA_FULL_NAME = [
+			'<:kakeraP:609264226342797333>',
+			'<:kakera:469791929106956298>',
+			'<:kakeraT:609264247645536276>',
+			'<:kakeraG:609264237780402228>',
+			'<:kakeraY:605124267574558720>',
+			'<:kakeraO:605124259018178560>',
+			'<:kakeraR:605124263917256836>',
+			'<:kakeraW:608193418698686465>'
+		]
 
+		self.KAKERA_NAME = ["kakera" + a for a in ['P', ''] + list("TGYORW")]
 
-# 	# Keep track of the person that sent the last command
-# 	if message.content.lower() in client.my_ROLL_COMMANDS:
-# 		client.my_last_user = message.author.name
-# 		return
+		self.KAKERA_EMOTES = {
+			**{self.KAKERA_FULL_NAME[i]: self.KAKERA_NAME[i] for i in range(len(self.KAKERA_NAME))},
+			**{self.KAKERA_NAME[i]: self.KAKERA_FULL_NAME[i] for i in range(len(self.KAKERA_NAME))}
+		}
 
-
-# 	# print(message.author, message.content, message.reactions)
-# 	# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
-
-# 	# Count when the kakera was collected
-# 	if message.content in client.my_ROLL_COMMANDS:
-# 		# Knowing that the bot will react with kakera
-# 		return
-
-# 	# Count when the kakera was collected
-# 	if message.content.find("($k)") > 0 and message.content.find("kakera") > 0:
-
-# 		# Figureout which kakera it was
-# 		kakera_type = ""
-# 		for parts in message.content.split(":"):
-# 			if "kakera" in parts:
-# 				kakera_type = parts
-
-# 		# If there is no data for that user then make an empty data sheet
-# 		if client.my_last_user not in client.my_data:
-# 			client.my_data[client.my_last_user] = {field: client.my_TEMPLATE_KAK_TYPE.copy() for field in "rolled claimed".split()}
-
-# 		# Update the data on that user
-# 		client.my_data[client.my_last_user]['claimed'][kakera_type] += 1
-# 		print("Added Claim")
-# 		await message.channel.send("you claimed!")
-# 		return
+		self.gen_template = lambda KAKERA_NAME: {field: {kak: 0 for kak in KAKERA_NAME } for field in "rolled claimed".split()}
 
 
-# 	# Output the running data
-# 	if message.content == "Anna Li stats":
-# 		print(client.my_data)
-# 		await message.channel.send(client.my_data)
-# 		return
+	# Attempt to read emotes for tracking rolls
+	@commands.Cog.listener()
+	async def on_message(self, message):
 
 
-# 	# MISC
+		# BASICS
 
-# 	# If the message is add Nina it will add nina
-# 	if message.content == "add Nina":
-# 		client.my_nina += 1
-# 		await message.channel.send("There is: " + str(client.my_nina))
-# 		return
+		# If the bot is reading it's own message
+		if message.author == self.bot.user:
+			return
 
-# 	# If the message is what we expect then reply to it
-# 	if message.content == "Anna Li":
-# 		await message.channel.send("pog")
-# 		return
+		# Lock on this channel only
+		if message.content.lower() == "lock on this channel":
+			self.data['channel'] = message.channel
+			await message.channel.send("Locked on: " + str(self.data['channel']))
+			return
 
-
-# @client.event
-# # When the bot notices a reaction to a message
-# async def on_reaction_add(reaction, user):
-
-# 	message = reaction.message
-
-# 	# BASICS
-
-# 	# If the bot is reading it's own message
-# 	if message.author == client.user:
-# 		return
-
-# 	# The block (Lock set up in the messages events)
-# 	if message.channel != client.my_channel:
-# 		return
-	
-
-# 	# CORE
+		# The block
+		if message.channel != self.data['channel']:
+			return
 
 
-# 	# What  does kakera reaction look like in str form
-# 	# print(str(reaction))
+		# Checks for embeds
+		if False and len(message.embeds) > 0:
+			pprint.pprint(message.embeds[0].to_dict()['description'])
+		
 
-# 	# Count who rolled the kakera
-# 	if str(reaction) in client.my_KAKERA_REACT_TYPES:
-
-# 		# Extract out the thing in between the :
-# 		for part in str(reaction).split(":"):
-# 			if part in client.my_KAKERA_TYPES:
-# 				kakera = part
-
-# 		# If there is no data for that user then make an empty data sheet
-# 		if client.my_last_user not in client.my_data:
-# 			client.my_data[client.my_last_user] = {field: client.my_TEMPLATE_KAK_TYPE.copy() for field in "rolled claimed".split()}
-
-# 		# Update the data on that user
-# 		client.my_data[client.my_last_user]['rolled'][kakera] += 1
-# 		print("Added")
-# 		return
+		# CORE
 
 
-# 	# MISC
+		# Keep track of the person that sent the last command
+		if message.content.lower() in self.ROLL_COMMANDS:
+			# self.data['last_user'] = message.author.id
+			self.data['last_user'] = message.author.name
+			return
 
-# 	# If the message is what we expect then reply to it
-# 	if message.content == "React":
-# 		await message.channel.send(reaction)
-# 		return
+
+		# print(message.author, message.content, message.reactions)
+		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
+
+		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)\*\*(\w+) \+\d+\*\* \(\$k\)', message.content)
+
+		# Count when the kakera was collected
+		if kakera_collect:
+
+			# Figureout which kakera it was; convert from full name to name
+			kakera_type = self.KAKERA_EMOTES[kakera_collect.group(1)]
+			kakera_type = re.search('<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
+
+			name = kakera_collect.group(2)
+
+			# If there is no data for that user then make an empty data sheet
+			if name not in self.data.data:
+				self.data['data'][name] = self.gen_template(self.KAKERA_NAME)
+
+			# Update the data on that user
+			self.data['data'][name]['claimed'][kakera_type] += 1
+			print("Added Claim")
+			await message.channel.send("you claimed!")
+			return
+
+
+		# Output the running data
+		if message.content.lower() == "anna li stats":
+			print(self.data['data'])
+			await message.channel.send(self.data['data'])
+			return
+
+		# Save the data
+		if message.content.lower() == "anna li save":
+			with open("data.json", 'w') as file:
+				file.write(json.dumps(self.data['data']))
+			await message.channel.send("saved")
+			return
+
+
+	# When the bot notices a reaction to a message
+	@commands.Cog.listener()
+	async def on_reaction_add(self, reaction, user):
+
+		message = reaction.message
+
+		# BASICS
+
+		# If the bot is reading it's own message
+		if message.author == self.bot.user:
+			return
+
+		# The block (Lock set up in the messages events)
+		if message.channel != self.data['channel']:
+			return
+
+
+		# CORE
+
+
+		# What does kakera reaction look like in str form
+		# print(str(reaction))
+
+		# Extract out name of the kakera
+		kakera_reaction = re.search('<:(kakera[PTGYORW]?):\d+>', str(reaction))
+
+		# Increment kakera count
+		if kakera_reaction:
+
+			# Who rolled last
+			roller = self.data['last_user']
+
+			# Extract out name of the kakera
+			kakera = kakera_reaction.group(1)
+
+			# If there is no data for that user then make an empty data sheet
+			if roller not in self.data['data']:
+				self.data['data'][roller] = self.gen_template(self.KAKERA_NAME)
+
+			# Update the data on that user
+			self.data['data'][roller]['rolled'][kakera] += 1
+			print("Added")
+			return
+
+
+		# MISC
+
+		# If the message is what we expect then reply to it
+		if message.content == "React":
+			await message.channel.send(reaction)
+			return
 
 
 
