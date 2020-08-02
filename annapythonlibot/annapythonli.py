@@ -41,13 +41,3 @@ bot.run(config.DISCORD_TOKEN, bot=True, reconnect=True)
 # bot.remove_command('help')
 
 # # Add custom help command
-
-
-# Pretty print
-# import pprint
-# Regex
-# import re
-# Context
-import contextvars as ctxvar
-# Async
-import asyncio
