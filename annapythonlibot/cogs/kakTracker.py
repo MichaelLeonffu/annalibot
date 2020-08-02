@@ -64,6 +64,20 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		self.gen_template = lambda KAKERA_NAME: {field: {kak: 0 for kak in KAKERA_NAME } for field in "rolled claimed".split()}
 
+		self.MY_KAKERA_FULL_NAME = [
+			"<:kakeraP:739401967163539517>",
+			"<:kakera:739401967276785694>",
+			"<:kakeraT:739401967410872360>",
+			"<:kakeraG:739401967264333885>",
+			"<:kakeraY:739401967406809129>",
+			"<:kakeraO:739401966911881269>",
+			"<:kakeraR:739401967280848936>",
+			"<:kakeraW:739401967364734986>"
+		]
+
+		self.KAKERA_STATS_TEMPLATE = " ".join(["%sx" + kak for kak in self.MY_KAKERA_FULL_NAME])
+
+
 
 	# Attempt to read emotes for tracking rolls
 	@commands.Cog.listener()
@@ -129,8 +143,41 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# Output the running data
 		if message.content.lower() == "anna li stats":
-			print(self.data['data'])
-			await message.channel.send(self.data['data'])
+
+			embed = discord.Embed(
+				# title='Title',
+				# description='description',
+				# url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
+				colour=discord.Colour.red()
+			)
+
+			# embed.set_image(url='https://cdn.discordapp.com/attachments/618692088137252864/739351037781213204/ffbbff.png')
+			# embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/618692088137252864/739352396144312360/bbbbff.png')
+			# embed.set_footer(text='footer')
+
+			embed.set_author(name='Anna Li stats')
+
+
+			# For each user
+			for user in self.data['data'].items():
+
+				name, value = user
+
+				# Print their rolls and claims
+				embed.add_field(
+					name=name + " rolls",
+					value=self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()]),
+					inline=False
+				)
+				embed.add_field(
+					name=name + " claims",
+					value=self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()]),
+					inline=True
+				)
+
+
+			# await ctx.send()
+			await message.channel.send(embed=embed)
 			return
 
 		# Save the data
@@ -153,7 +200,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if message.author == self.bot.user:
 			return
 
-		# Only bot reacts matter
+		# Only bot messages matter
 		if message.author.bot == False:
 			return
 
@@ -177,6 +224,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# Increment kakera count
 		if kakera_reaction:
+
+			# If there is more than 1 valid react to this message ignore it
+			if message.reactions[0].count != 1:
+				return
 
 			# Who rolled last
 			roller = self.data['last_user']
