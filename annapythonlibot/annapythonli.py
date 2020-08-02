@@ -17,12 +17,14 @@ import contextvars as ctxvar
 import asyncio
 
 
+# Config
+CONFIG_var = ctxvar.ContextVar('CONFIG')
+CONFIG_var.set(config)
+
+
 # Time keeping
 time_start_var = ctxvar.ContextVar('time_start')
 time_start_var.set(time.time())
-
-USER_ID_var = ctxvar.ContextVar('USER_ID')
-USER_ID_var.set(config.USER_ID)
 
 
 def time_pretty(dTime):
@@ -130,11 +132,9 @@ async def _file(ctx):
 
 	file = discord.File("images/meowpudding.jpg", filename="meowpudding.jpg", spoiler=False)
 
-	print(ctx.message.author.id)
-
 	# If the USER_ID in the config is 0 (default) then send
 	# the file to the user who sent the message
-	user_id = USER_ID_var.get()
+	user_id = CONFIG_var.get().USER_ID
 	if user_id == 0:
 		user_id = ctx.message.author.id
 
@@ -150,14 +150,10 @@ async def _file(ctx):
 	message = await user.dm_channel.send("file: " + str(file), file=file)
 
 
-	# print(message)
-	# print(message.attachments)
-	# print(message.attachments[0].url)
-
 	embed = discord.Embed(
 		title='Meow',
 		description='And spagethit',
-		# url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
+		# url='show a url in the embed',
 		colour=discord.Colour.red()
 	)
 
@@ -170,6 +166,20 @@ async def _file(ctx):
 	)
 	await ctx.send(embed=embed)
 
+
+# Attempting to use othe people emotes
+@bot.command(
+	name='emote',
+	aliases=['emo'],
+	brief='Emote testing',
+	description='Using custom emotes',
+	help=':)',
+	usage='%emote')
+async def _emote(ctx):
+
+	emojis = CONFIG_var.get().EMOJI
+
+	await ctx.send(" ".join([emo for emo in emojis]))
 
 
 # @bot.command(name='eval')
