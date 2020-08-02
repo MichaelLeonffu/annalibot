@@ -1,7 +1,7 @@
 # annapythonli.py
 
 # Config
-from config.config import DISCORD_TOKEN
+import config.config as config
 # This is the discord
 import discord
 from discord.ext import commands
@@ -20,6 +20,10 @@ import asyncio
 # Time keeping
 time_start_var = ctxvar.ContextVar('time_start')
 time_start_var.set(time.time())
+
+USER_ID_var = ctxvar.ContextVar('USER_ID')
+USER_ID_var.set(config.USER_ID)
+
 
 def time_pretty(dTime):
 	hours, remainder = divmod(dTime, 3600)
@@ -61,6 +65,11 @@ async def _time(ctx):
 async def _add(ctx, a: int, b: int):
 	await ctx.send(a + b)
 
+@_add.error
+async def _add_error(ctx, error):
+	if isinstance(error, commands.BadArgument):
+		await ctx.send(error)
+
 @bot.command(
 	name='mul',
 	aliases=['m'],
@@ -88,15 +97,12 @@ async def _embed(ctx):
 		title='Title',
 		description='description',
 		url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
-		colour=discord.Colour.red(),
-		footer='footer',
-
-
+		colour=discord.Colour.red()
 	)
 
 	embed.set_image(url='https://cdn.discordapp.com/attachments/618692088137252864/739351037781213204/ffbbff.png')
 	embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/618692088137252864/739352396144312360/bbbbff.png')
-
+	embed.set_footer(text='footer')
 
 	embed.set_author(name='Author')
 	embed.set_author(name='Author')
@@ -113,10 +119,58 @@ async def _embed(ctx):
 	# await ctx.send()
 	await ctx.send(embed=embed)
 
-@_add.error
-async def _add_error(ctx, error):
-	if isinstance(error, commands.BadArgument):
-		await ctx.send(error)
+@bot.command(
+	name='file',
+	aliases=['f'],
+	brief='File testing',
+	description='Uploading a file (so that I can use the url later)',
+	help='Teehee',
+	usage='%file')
+async def _file(ctx):
+
+	file = discord.File("images/meowpudding.jpg", filename="meowpudding.jpg", spoiler=False)
+
+	print(ctx.message.author.id)
+
+	# If the USER_ID in the config is 0 (default) then send
+	# the file to the user who sent the message
+	user_id = USER_ID_var.get()
+	if user_id == 0:
+		user_id = ctx.message.author.id
+
+	# message = await ctx.channel.send("file: " + str(file), file=file)
+
+	# Begin loophole
+	# Find our user (not possible to send message to self, so sending it to defined user)
+	user = bot.get_user(user_id)
+	# Create dm if there isn't one
+	if user.dm_channel == None:
+		await user.create_dm()
+	# Send a message to this user (ourself)
+	message = await user.dm_channel.send("file: " + str(file), file=file)
+
+
+	# print(message)
+	# print(message.attachments)
+	# print(message.attachments[0].url)
+
+	embed = discord.Embed(
+		title='Meow',
+		description='And spagethit',
+		# url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
+		colour=discord.Colour.red()
+	)
+
+	embed.set_image(url=message.attachments[0].url)
+	embed.set_footer(text='(meow)')
+	embed.add_field(
+		name='field name',
+		value='value',
+		inline=False
+	)
+	await ctx.send(embed=embed)
+
+
 
 # @bot.command(name='eval')
 # @commands.is_owner()
@@ -316,4 +370,4 @@ async def pages(ctx):
 # 		return
 
 # Connect the client to discord
-bot.run(DISCORD_TOKEN)
+bot.run(config.DISCORD_TOKEN)
