@@ -76,6 +76,48 @@ async def _add_error(ctx, error):
 	if isinstance(error, commands.BadArgument):
 		await ctx.send(error)
 
+@bot.command(
+	name='embed',
+	aliases=['em'],
+	brief='Embed testing',
+	description='Attempt to make things look pretty',
+	help='And colorful',
+	usage='%mul(int a, int b)')
+async def _embed(ctx):
+	embed = discord.Embed(
+		title='Title',
+		description='description',
+		url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
+		colour=discord.Colour.red(),
+		footer='footer',
+
+
+	)
+
+	embed.set_image(url='https://cdn.discordapp.com/attachments/618692088137252864/739351037781213204/ffbbff.png')
+	embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/618692088137252864/739352396144312360/bbbbff.png')
+
+
+	embed.set_author(name='Author')
+	embed.set_author(name='Author')
+	embed.add_field(
+		name='field name',
+		value='value',
+		inline=False
+	)
+	embed.add_field(
+		name='field name2',
+		value='value2 inline',
+		inline=True
+	)
+	# await ctx.send()
+	await ctx.send(embed=embed)
+
+@_add.error
+async def _add_error(ctx, error):
+	if isinstance(error, commands.BadArgument):
+		await ctx.send(error)
+
 # @bot.command(name='eval')
 # @commands.is_owner()
 # async def _eval(ctx, *, code):
