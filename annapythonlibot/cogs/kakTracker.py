@@ -111,13 +111,13 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if kakera_collect:
 
 			# Figureout which kakera it was; convert from full name to name
-			kakera_type = self.KAKERA_EMOTES[kakera_collect.group(1)]
+			kakera_type = kakera_collect.group(1)
 			kakera_type = re.search('<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
 
 			name = kakera_collect.group(2)
 
 			# If there is no data for that user then make an empty data sheet
-			if name not in self.data.data:
+			if name not in self.data['data']:
 				self.data['data'][name] = self.gen_template(self.KAKERA_NAME)
 
 			# Update the data on that user
@@ -163,6 +163,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# What does kakera reaction look like in str form
 		# print(str(reaction))
+
+		# If it isn't real kakera
+		if str(reaction) not in self.KAKERA_FULL_NAME:
+			return
 
 		# Extract out name of the kakera
 		kakera_reaction = re.search('<:(kakera[PTGYORW]?):\d+>', str(reaction))
