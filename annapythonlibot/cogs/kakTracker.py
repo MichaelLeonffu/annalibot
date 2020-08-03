@@ -10,8 +10,6 @@ import discord
 from discord.ext import commands
 # Regex
 import re
-# json
-import json
 # Time
 import time
 import datetime
@@ -31,16 +29,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 		self.client = pymongo.MongoClient(config.DB_URI)
 		self.db = self.client.kakera
 
-		# Restore data from json file
-		with open("data.json", "r") as file:
-			dataJSON = json.loads(file.read())
-
-
 		# Data
 		self.data = {
 			'channel': None,
-			'last_user': None,
-			'data': dataJSON
+			'last_user': None
 		}
 
 		# Constants
@@ -86,8 +78,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 	async def on_message(self, message):
 
 
-		# BASICS
-
 		# If the bot is reading it's own message
 		if message.author == self.bot.user:
 			return
@@ -102,13 +92,9 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if message.channel != self.data['channel']:
 			return
 
-
 		# Checks for embeds
 		if False and len(message.embeds) > 0:
 			pprint.pprint(message.embeds[0].to_dict()['description'])
-		
-
-		# CORE
 
 
 		# Keep track of the person that sent the last command
@@ -132,14 +118,9 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			name = kakera_collect.group(3)
 
-			# If there is no data for that user then make an empty data sheet
-			if name not in self.data['data']:
-				self.data['data'][name] = self.gen_template(self.KAKERA_NAME)
-
-			# Update the data on that user
-			self.data['data'][name]['claimed'][kakera_type] += 1
 			await message.channel.send("you claimed: " + str(kakera_collect.group(4)))
 
+			# Prepare doc
 			doc = {
 				'time': 	datetime.datetime.utcnow(),
 				'roller': 	self.data['last_user'],
@@ -150,13 +131,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Upload data to server
 			self.db.kakera_claimed.insert_one(doc)
-			return
-
-		# Save the data
-		if message.content.lower() == "anna li save":
-			with open("data.json", 'w') as file:
-				file.write(json.dumps(self.data['data']))
-			await message.channel.send("saved")
 			return
 
 
@@ -180,16 +154,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if message.channel != self.data['channel']:
 			return
 
-
-		# CORE
-
-
-		# What does kakera reaction look like in str form
-		# print(str(reaction))
-
 		# If it isn't real kakera
 		if str(reaction) not in self.KAKERA_FULL_NAME:
 			return
+
 
 		# Extract out name of the kakera
 		kakera_reaction = re.search('<:(kakera[PTGYORW]?):\d+>', str(reaction))
@@ -207,13 +175,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			# Extract out name of the kakera
 			kakera = kakera_reaction.group(1)
 
-			# If there is no data for that user then make an empty data sheet
-			if roller not in self.data['data']:
-				self.data['data'][roller] = self.gen_template(self.KAKERA_NAME)
-
-			# Update the data on that user
-			self.data['data'][roller]['rolled'][kakera] += 1
-
+			# Prepare doc
 			doc = {
 				'time': 	datetime.datetime.utcnow(),
 				'roller': 	self.data['last_user'],
@@ -224,14 +186,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 			self.db.kakera_rolled.insert_one(doc)
 
 			print("Added")
-			return
-
-
-		# MISC
-
-		# If the message is what we expect then reply to it
-		if message.content == "React":
-			await message.channel.send(reaction)
 			return
 
 
