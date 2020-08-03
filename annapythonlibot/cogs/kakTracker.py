@@ -149,38 +149,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Upload data to server
 			self.db.kakera_claimed.insert_one(doc)
-
-			return
-
-
-		# Output the running data
-		if message.content.lower() == "anna li stats":
-
-			# Make the embed
-			embed = discord.Embed(
-				colour=discord.Colour.red()
-			)
-			embed.set_author(name='Anna Li stats')
-
-
-			# For each user
-			for user in self.data['data'].items():
-
-				# Unpack the values 
-				name, value = user
-				rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()])
-				claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()])
-
-				# Print their rolls and claims
-				embed.add_field(
-					name=name,
-					value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
-					inline=False
-				)
-
-
-			# Send the embed stats
-			await message.channel.send(embed=embed)
 			return
 
 		# Save the data
@@ -254,7 +222,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 			# Upload data to server
 			self.db.kakera_rolled.insert_one(doc)
 
-
 			print("Added")
 			return
 
@@ -265,6 +232,46 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if message.content == "React":
 			await message.channel.send(reaction)
 			return
+
+
+	@commands.command(
+		name='stats',
+		aliases=['s'],
+		brief='Kakera stas',
+		description='WIP will have search',
+		help='So help me',
+		usage='%stats')
+	async def _stats(self, ctx):
+
+		# Make the embed
+		embed = discord.Embed(
+			colour=discord.Colour.red()
+		)
+		embed.set_author(name='Anna Li stats')
+
+
+		# For each user
+		for user in self.data['data'].items():
+
+			# Unpack the values 
+			name, value = user
+			rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()])
+			claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()])
+
+			# Print their rolls and claims
+			embed.add_field(
+				name=name,
+				value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
+				inline=False
+			)
+
+		# Send the embed stats
+		await ctx.send(embed=embed)
+
+	@_stats.error
+	async def _stats_error(self, ctx, error):
+		if isinstance(error, commands.BadArgument):
+			await ctx.send(error)
 
 
 
