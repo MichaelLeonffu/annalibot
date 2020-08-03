@@ -13,6 +13,7 @@ import re
 # json
 import json
 # Time
+import time
 import datetime
 # mongodb
 import pymongo
@@ -243,20 +244,91 @@ class TrackCog(commands.Cog, name="Tracking"):
 		usage='%stats')
 	async def _stats(self, ctx):
 
+		time_start = time.time()
+
 		# Make the embed
 		embed = discord.Embed(
 			colour=discord.Colour.red()
 		)
 		embed.set_author(name='Anna Li stats')
 
+		result = self.db.kakera_claimed.aggregate([
+			{
+				'$group': {
+					'_id': '$claimer',
+					'kakeraP': {'$sum':{'$cond':[{'$eq':['kakeraP','$kakera']},1,0]}},
+					'kakera': {'$sum':{'$cond':[{'$eq':['kakera','$kakera']},1,0]}},
+					'kakeraT': {'$sum':{'$cond':[{'$eq':['kakeraT','$kakera']},1,0]}},
+					'kakeraG': {'$sum':{'$cond':[{'$eq':['kakeraG','$kakera']},1,0]}},
+					'kakeraY': {'$sum':{'$cond':[{'$eq':['kakeraY','$kakera']},1,0]}},
+					'kakeraO': {'$sum':{'$cond':[{'$eq':['kakeraO','$kakera']},1,0]}},
+					'kakeraR': {'$sum':{'$cond':[{'$eq':['kakeraR','$kakera']},1,0]}},
+					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$kakera']},1,0]}}
+				}
+			}, {
+				'$lookup': {
+					'from': 'kakera_rolled',
+					'localField': '_id',
+					'foreignField': 'roller',
+					'as': 'rolled'
+				}
+			}, {
+				'$unwind':{'path':'$rolled'}
+			}, {
+				'$project': {
+					'claimed': {
+						'kakeraP': '$kakeraP',
+						'kakera': '$kakera',
+						'kakeraT': '$kakeraT',
+						'kakeraG': '$kakeraG',
+						'kakeraY': '$kakeraY',
+						'kakeraO': '$kakeraO',
+						'kakeraR': '$kakeraR',
+						'kakeraW': '$kakeraW'
+					},
+					'rolled': '$rolled'
+				}
+			}, {
+				'$group': {
+					'_id': {'name': '$_id', 'claimed': '$claimed'},
+					'kakeraP': {'$sum':{'$cond':[{'$eq':['kakeraP','$rolled.kakera']},1,0]}},
+					'kakera': {'$sum':{'$cond':[{'$eq':['kakera','$rolled.kakera']},1,0]}},
+					'kakeraT': {'$sum':{'$cond':[{'$eq':['kakeraT','$rolled.kakera']},1,0]}},
+					'kakeraG': {'$sum':{'$cond':[{'$eq':['kakeraG','$rolled.kakera']},1,0]}},
+					'kakeraY': {'$sum':{'$cond':[{'$eq':['kakeraY','$rolled.kakera']},1,0]}},
+					'kakeraO': {'$sum':{'$cond':[{'$eq':['kakeraO','$rolled.kakera']},1,0]}},
+					'kakeraR': {'$sum':{'$cond':[{'$eq':['kakeraR','$rolled.kakera']},1,0]}},
+					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$rolled.kakera']},1,0]}}
+				}
+			}, {
+				'$project': {
+					'_id': 0,
+					'name': '$_id.name',
+					'claimed': '$_id.claimed',
+					'rolled': {
+						'kakeraP': '$kakeraP',
+						'kakera': '$kakera',
+						'kakeraT': '$kakeraT',
+						'kakeraG': '$kakeraG',
+						'kakeraY': '$kakeraY',
+						'kakeraO': '$kakeraO',
+						'kakeraR': '$kakeraR',
+						'kakeraW': '$kakeraW'
+					}
+				}
+			}, {
+				'$sort':{'name': 1}
+			}
+		])
+
 
 		# For each user
-		for user in self.data['data'].items():
+		for doc in result:
 
 			# Unpack the values 
-			name, value = user
-			rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()])
-			claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()])
+			name, rolled, claimed = doc['name'], doc['rolled'], doc['claimed']
+			rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in rolled.values()])
+			claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in claimed.values()])
 
 			# Print their rolls and claims
 			embed.add_field(
@@ -265,13 +337,17 @@ class TrackCog(commands.Cog, name="Tracking"):
 				inline=False
 			)
 
+		# Report the time it took to compute this
+		time_end = time.time()
+		embed.set_footer(text="Time: " + str(round(time_end - time_start, 2)) + "s")
+
 		# Send the embed stats
 		await ctx.send(embed=embed)
 
-	@_stats.error
-	async def _stats_error(self, ctx, error):
-		if isinstance(error, commands.BadArgument):
-			await ctx.send(error)
+	# @_stats.error
+	# async def _stats_error(self, ctx, error):
+	# 	if isinstance(error, commands.BadArgument):
+	# 		await ctx.send(error)
 
 
 
