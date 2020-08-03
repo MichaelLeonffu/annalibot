@@ -116,7 +116,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 				'roller': 	self.data['last_user'],
 				'claimer':	name,
 				'kakera': 	kakera_type,
-				'value': 	kakera_collect.group(4)
+				'value': 	int(kakera_collect.group(4))
 			}
 
 			# Upload data to server
@@ -198,6 +198,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			{
 				'$group': {
 					'_id': '$claimer',
+					'value':{'$sum':"$value"},
 					'kakeraP': {'$sum':{'$cond':[{'$eq':['kakeraP','$kakera']},1,0]}},
 					'kakera': {'$sum':{'$cond':[{'$eq':['kakera','$kakera']},1,0]}},
 					'kakeraT': {'$sum':{'$cond':[{'$eq':['kakeraT','$kakera']},1,0]}},
@@ -219,6 +220,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			}, {
 				'$project': {
 					'claimed': {
+						'value': "$value",
 						'kakeraP': '$kakeraP',
 						'kakera': '$kakera',
 						'kakeraT': '$kakeraT',
@@ -259,7 +261,11 @@ class TrackCog(commands.Cog, name="Tracking"):
 					}
 				}
 			}, {
-				'$sort':{'name': 1}
+				'$addFields':{'value': "$claimed.value"}
+			}, {
+				'$project':{"claimed.value": 0}
+			}, {
+				'$sort':{'value': -1}
 			}
 		])
 
@@ -268,13 +274,14 @@ class TrackCog(commands.Cog, name="Tracking"):
 		for doc in result:
 
 			# Unpack the values 
-			name, rolled, claimed = doc['name'], doc['rolled'], doc['claimed']
+			name, value, rolled, claimed = doc['name'], doc['value'], doc['rolled'], doc['claimed']
 			rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in rolled.values()])
 			claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in claimed.values()])
+			kakera_count = sum(list(claimed.values())[1:])
 
 			# Print their rolls and claims
 			embed.add_field(
-				name=name,
+				name="`" + "{:25}{:>10}{:>10,}".format(name, "Count: " + str(kakera_count), value) + "`",
 				value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
 				inline=False
 			)
