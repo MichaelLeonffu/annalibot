@@ -27,8 +27,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 		self.bot = bot
 
 		# Connect the mongodb client
-		client = pymongo.MongoClient(config.DB_URI)
-		db = client.upload
+		self.client = pymongo.MongoClient(config.DB_URI)
+		self.db = self.client.kakera
 
 		# Restore data from json file
 		with open("data.json", "r") as file:
@@ -139,8 +139,16 @@ class TrackCog(commands.Cog, name="Tracking"):
 			self.data['data'][name]['claimed'][kakera_type] += 1
 			await message.channel.send("you claimed: " + str(kakera_collect.group(4)))
 
-			# Upload data to server
+			doc = {
+				'time': 	datetime.datetime.utcnow(),
+				'roller': 	self.data['last_user'],
+				'claimer':	name,
+				'kakera': 	kakera_type,
+				'value': 	kakera_collect.group(4)
+			}
 
+			# Upload data to server
+			self.db.kakera_claimed.insert_one(doc)
 
 			return
 
@@ -236,6 +244,17 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Update the data on that user
 			self.data['data'][roller]['rolled'][kakera] += 1
+
+			doc = {
+				'time': 	datetime.datetime.utcnow(),
+				'roller': 	self.data['last_user'],
+				'kakera': 	kakera
+			}
+
+			# Upload data to server
+			self.db.kakera_rolled.insert_one(doc)
+
+
 			print("Added")
 			return
 
