@@ -8,14 +8,14 @@ import config.config as config
 # This is the discord
 import discord
 from discord.ext import commands
-# Pretty print
-# import pprint
 # Regex
 import re
 # json
 import json
-# Async
-import asyncio
+# Time
+import datetime
+# mongodb
+import pymongo
 
 
 # Our track cog
@@ -26,10 +26,11 @@ class TrackCog(commands.Cog, name="Tracking"):
 	def __init__(self, bot):
 		self.bot = bot
 
-		# # Config
-		# self.CONFIG_var = ctxvar.ContextVar('CONFIG')
-		# self.CONFIG_var.set(config)
+		# Connect the mongodb client
+		client = pymongo.MongoClient(config.DB_URI)
+		db = client.upload
 
+		# Restore data from json file
 		with open("data.json", "r") as file:
 			dataJSON = json.loads(file.read())
 
@@ -119,7 +120,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# print(message.author, message.content, message.reactions)
 		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
 
-		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
+		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)(\(Free\) )?\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
 
 		# Count when the kakera was collected
 		if kakera_collect:
@@ -128,7 +129,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			kakera_type = kakera_collect.group(1)
 			kakera_type = re.search('<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
 
-			name = kakera_collect.group(2)
+			name = kakera_collect.group(3)
 
 			# If there is no data for that user then make an empty data sheet
 			if name not in self.data['data']:
@@ -136,33 +137,29 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Update the data on that user
 			self.data['data'][name]['claimed'][kakera_type] += 1
-			print("Added Claim")
-			await message.channel.send("you claimed: " + str(kakera_collect.group(3)))
+			await message.channel.send("you claimed: " + str(kakera_collect.group(4)))
+
+			# Upload data to server
+
+
 			return
 
 
 		# Output the running data
 		if message.content.lower() == "anna li stats":
 
+			# Make the embed
 			embed = discord.Embed(
-				# title='Title',
-				# description='description',
-				# url='https://cdn.discordapp.com/attachments/618692088137252864/739352223619743882/bbffbb.png',
 				colour=discord.Colour.red()
 			)
-
-			# embed.set_image(url='https://cdn.discordapp.com/attachments/618692088137252864/739351037781213204/ffbbff.png')
-			# embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/618692088137252864/739352396144312360/bbbbff.png')
-			# embed.set_footer(text='footer')
-
 			embed.set_author(name='Anna Li stats')
 
 
 			# For each user
 			for user in self.data['data'].items():
 
+				# Unpack the values 
 				name, value = user
-
 				rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()])
 				claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()])
 
@@ -174,7 +171,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 				)
 
 
-			# await ctx.send()
+			# Send the embed stats
 			await message.channel.send(embed=embed)
 			return
 
