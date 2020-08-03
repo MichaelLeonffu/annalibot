@@ -82,19 +82,9 @@ class TrackCog(commands.Cog, name="Tracking"):
 		if message.author == self.bot.user:
 			return
 
-		# Lock on this channel only
-		if message.content.lower() == "lock on this channel":
-			self.data['channel'] = message.channel
-			await message.channel.send("Locked on: " + str(self.data['channel']))
-			return
-
 		# The block
 		if message.channel != self.data['channel']:
 			return
-
-		# Checks for embeds
-		if False and len(message.embeds) > 0:
-			pprint.pprint(message.embeds[0].to_dict()['description'])
 
 
 		# Keep track of the person that sent the last command
@@ -103,7 +93,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			self.data['last_user'] = message.author.name
 			return
 
-
+		# pprint.pprint(message.embeds[0].to_dict()['description'])
 		# print(message.author, message.content, message.reactions)
 		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
 
@@ -139,8 +129,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 	async def on_reaction_add(self, reaction, user):
 
 		message = reaction.message
-
-		# BASICS
 
 		# If the bot is reading it's own message
 		if message.author == self.bot.user:
@@ -297,6 +285,20 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# Send the embed stats
 		await ctx.send(embed=embed)
+
+	@commands.command(
+		name='lock',
+		aliases=['lock on this channel'],
+		brief='Locks to channel with rolls',
+		description='Must be done before rolls can be made',
+		help='Can only select 1 channel',
+		usage='lock')
+	async def _lock(self, ctx):
+
+		# Lock on this channel only
+		self.data['channel'] = ctx.channel
+		await ctx.send("Locked on: " + str(self.data['channel']))
+
 
 	# @_stats.error
 	# async def _stats_error(self, ctx, error):
