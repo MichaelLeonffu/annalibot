@@ -119,7 +119,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# print(message.author, message.content, message.reactions)
 		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
 
-		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)\*\*(.+) \+\d+\*\* \(\$k\)', message.content)
+		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
 
 		# Count when the kakera was collected
 		if kakera_collect:
@@ -137,7 +137,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			# Update the data on that user
 			self.data['data'][name]['claimed'][kakera_type] += 1
 			print("Added Claim")
-			await message.channel.send("you claimed!")
+			await message.channel.send("you claimed: " + str(kakera_collect.group(3)))
 			return
 
 
