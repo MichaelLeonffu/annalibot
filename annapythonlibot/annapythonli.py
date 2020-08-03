@@ -9,7 +9,7 @@ from discord.ext import commands
 
 # The bot
 bot = commands.Bot(
-	command_prefix	= ('!', '%', 'a!', 'annali!', 'annali'),
+	command_prefix	= ('!', '%', 'a!', 'annali!', 'annali ', 'annali', 'anna li ', 'anna li'),
 	activity		= discord.Game(name="with fire")
 )
 
