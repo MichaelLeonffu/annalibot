@@ -69,7 +69,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 			"<:kakeraW:739401967364734986>"
 		]
 
-		self.KAKERA_STATS_TEMPLATE = " ".join(["%sx" + kak for kak in self.MY_KAKERA_FULL_NAME])
+		self.KAKERA_STATS_TEMPLATE = " ".join(["%s" + kak for kak in self.MY_KAKERA_FULL_NAME])
+		# self.KAKERA_STATS_TEMPLATE = " ".join(["%sx " + kak for kak in self.MY_KAKERA_FULL_NAME])
 
 
 
@@ -281,8 +282,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Print their rolls and claims
 			embed.add_field(
-				name="`" + "{:25}{:>10}{:>10,}".format(name, "Count: " + str(kakera_count), value) + "`",
-				value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
+				# name="`" + "{:25}{:>10}{:>10,}".format(name, "Count:" + str(kakera_count), value) + "`",
+				# value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
+				name="`" + "{:15}{:>10}{:>8,}".format(name, "Count:" + str(kakera_count), value) + "`",
+				value="R: " + str(rolls) + '\n' + "C: " + str(claims),
 				inline=False
 			)
 
