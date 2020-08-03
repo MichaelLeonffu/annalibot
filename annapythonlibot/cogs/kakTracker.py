@@ -163,16 +163,14 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 				name, value = user
 
+				rolls 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()])
+				claims 	= self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()])
+
 				# Print their rolls and claims
 				embed.add_field(
-					name=name + " rolls",
-					value=self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['rolled'].values()]),
+					name=name,
+					value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
 					inline=False
-				)
-				embed.add_field(
-					name=name + " claims",
-					value=self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(v) + "**" for v in value['claimed'].values()]),
-					inline=True
 				)
 
 
