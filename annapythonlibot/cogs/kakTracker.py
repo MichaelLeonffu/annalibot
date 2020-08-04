@@ -298,8 +298,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# datetime_start = datetime.datetime.fromtimestamp(datetime_start.timestamp())
 		# datetime_end = datetime.datetime.fromtimestamp(datetime_end.timestamp())
 		# Quick fix for now
-		datetime_start = datetime.datetime.now()
-		datetime_end = datetime.datetime.now() + window
+		datetime_end = datetime.datetime.now()
+		datetime_start = datetime_end + window
 		time_format = "%m/%d %H:%M"
 		window = datetime_start.strftime(time_format) + " - " + datetime_end.strftime(time_format)
 		# Print the window
