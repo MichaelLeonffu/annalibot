@@ -193,10 +193,28 @@ class TrackCog(commands.Cog, name="Tracking"):
 		embed = discord.Embed(
 			colour=discord.Colour.red()
 		)
-		embed.set_author(name='Anna Li stats')
+		# embed.set_author(name='Anna Li stats')
+
+
+		# I'm guessing that doing this operation kills the tz info
+		# Therefore I'm leaving this in utc and later adding tz info
+		# Basically keeping utc for any mongodb is good idea.
+		today = datetime.datetime.utcnow()
+		window = datetime.timedelta(days=-1)
+
+		# Create window
+		datetime_start = today + window
+		datetime_end = today
 
 		result = self.db.kakera_claimed.aggregate([
 			{
+				'$match': {
+					'time': {
+						'$gte': datetime_start,
+						'$lt': datetime_end
+					}
+				}
+			}, {
 				'$group': {
 					'_id': '$claimer',
 					'value':{'$sum':"$value"},
@@ -232,6 +250,13 @@ class TrackCog(commands.Cog, name="Tracking"):
 						'kakeraW': '$kakeraW'
 					},
 					'rolled': '$rolled'
+				}
+			}, {
+				'$match': {
+					'rolled.time': {
+						'$gte': datetime_start,
+						'$lt': datetime_end
+					}
 				}
 			}, {
 				'$group': {
@@ -270,6 +295,19 @@ class TrackCog(commands.Cog, name="Tracking"):
 			}
 		])
 
+		# datetime_start = datetime.datetime.fromtimestamp(datetime_start.timestamp())
+		# datetime_end = datetime.datetime.fromtimestamp(datetime_end.timestamp())
+		# Quick fix for now
+		datetime_start = datetime.datetime.now()
+		datetime_end = datetime.datetime.now() + window
+		time_format = "%m/%d %H:%M"
+		window = datetime_start.strftime(time_format) + " - " + datetime_end.strftime(time_format)
+		# Print the window
+		embed.add_field(
+			name="Anna Li stats",
+			value=window,
+			inline=False
+		)
 
 		# For each user
 		for doc in result:
@@ -291,7 +329,9 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# Report the time it took to compute this
 		time_end = time.time()
-		embed.set_footer(text="Time: " + str(round(time_end - time_start, 2)) + "s")
+		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
+		# embed.set_footer(text="{:25}{:>8}".format(window, compute_time))
+		embed.set_footer(text=compute_time)
 
 		# Send the embed stats
 		await ctx.send(embed=embed)
