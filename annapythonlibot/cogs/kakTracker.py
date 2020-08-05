@@ -303,13 +303,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 			}
 		])
 
-		# datetime_start = datetime.datetime.fromtimestamp(datetime_start.timestamp())
-		# datetime_end = datetime.datetime.fromtimestamp(datetime_end.timestamp())
-		# Quick fix for now
-		datetime_end = datetime.datetime.now()
-		datetime_start = datetime_end + window
+		# Format time
 		time_format = "%m/%d %H:%M"
-		window = datetime_start.strftime(time_format) + " - " + datetime_end.strftime(time_format)
+		window = utc_to_local(datetime_start).strftime(time_format) + " - " + utc_to_local(datetime_end).strftime(time_format)
+
 		# Print the window
 		embed.add_field(
 			name="Anna Li stats",
@@ -403,7 +400,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# For each user
 		for doc in result:
 
-			# Unpack the values 
+			# Unpack the values
 			time_stamp, value, kakera, roller, claimer = doc['time'], doc['value'], doc['kakera'], doc['roller'], doc['claimer']
 
 			# Convert timezone and format
