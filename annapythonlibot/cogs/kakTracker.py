@@ -182,10 +182,10 @@ class TrackCog(commands.Cog, name="Tracking"):
 		name='stats',
 		aliases=['s'],
 		brief='Kakera stas',
-		description='WIP will have search',
-		help='So help me',
-		usage='%stats')
-	async def _stats(self, ctx):
+		description='Reports the kakera roll and claim stats!',
+		help='days (int): how many days back to search',
+		usage='days')
+	async def _stats(self, ctx, days=1):
 
 		time_start = time.time()
 
@@ -200,7 +200,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Therefore I'm leaving this in utc and later adding tz info
 		# Basically keeping utc for any mongodb is good idea.
 		today = datetime.datetime.utcnow()
-		window = datetime.timedelta(days=-1)
+		window = datetime.timedelta(days=-days)
 
 		# Create window
 		datetime_start = today + window
@@ -336,6 +336,13 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Send the embed stats
 		await ctx.send(embed=embed)
 
+	@_stats.error
+	async def _stats_error(self, ctx, error):
+		if isinstance(error, commands.BadArgument):
+			await ctx.send(error)
+		else:
+			print(error)
+
 	@commands.command(
 		name='lock',
 		aliases=['lock on this channel'],
@@ -348,12 +355,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Lock on this channel only
 		self.data['channel'] = ctx.channel
 		await ctx.send("Locked on: " + str(self.data['channel']))
-
-
-	# @_stats.error
-	# async def _stats_error(self, ctx, error):
-	# 	if isinstance(error, commands.BadArgument):
-	# 		await ctx.send(error)
 
 
 
