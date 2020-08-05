@@ -92,7 +92,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			return
 
 		# The block
-		if message.channel != self.data['channel']:
+		if message.channel.id != self.data['channel']:
 			return
 
 
@@ -148,7 +148,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			return
 
 		# The block (Lock set up in the messages events)
-		if message.channel != self.data['channel']:
+		if message.channel.id != self.data['channel']:
 			return
 
 		# If it isn't real kakera
