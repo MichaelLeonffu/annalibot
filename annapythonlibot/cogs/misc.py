@@ -6,6 +6,8 @@
 # This is the discord
 import discord
 from discord.ext import commands
+# Regex
+import re
 
 
 # Our simple cog
@@ -48,6 +50,19 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		if isinstance(error, commands.BadArgument):
 			await ctx.send(error)
 
+	# Attempt to be a dad for those who are "back"
+	@commands.Cog.listener()
+	async def on_message(self, message):
+
+
+		# If the bot is reading it's own message
+		if message.author == self.bot.user: return
+
+		# Find everything including the "back ..."
+		is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
+
+		# Send message
+		await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
 
 
 # Give the cog to the bot
