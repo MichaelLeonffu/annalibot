@@ -17,6 +17,9 @@ import datetime
 import pymongo
 
 
+def utc_to_local(utc_dt):
+	return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
+
 # Our track cog
 class TrackCog(commands.Cog, name="Tracking"):
 	"""TrackCog"""
@@ -68,6 +71,11 @@ class TrackCog(commands.Cog, name="Tracking"):
 			"<:kakeraR:739401967280848936>",
 			"<:kakeraW:739401967364734986>"
 		]
+
+		self.MY_KAKERA_EMOTES = {
+			**{self.MY_KAKERA_FULL_NAME[i]: self.KAKERA_NAME[i] for i in range(len(self.KAKERA_NAME))},
+			**{self.KAKERA_NAME[i]: self.MY_KAKERA_FULL_NAME[i] for i in range(len(self.KAKERA_NAME))}
+		}
 
 		self.KAKERA_STATS_TEMPLATE = " ".join(["%s" + kak for kak in self.MY_KAKERA_FULL_NAME])
 		# self.KAKERA_STATS_TEMPLATE = " ".join(["%sx " + kak for kak in self.MY_KAKERA_FULL_NAME])
@@ -355,6 +363,73 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Lock on this channel only
 		self.data['channel'] = ctx.channel
 		await ctx.send("Locked on: " + str(self.data['channel']))
+
+	@commands.command(
+		name='snipe',
+		aliases=['steal', 'snips', 'snip'],
+		brief='Last 10 snips',
+		description='Who sniped who?!',
+		help='limit: the amount of recent snips to show',
+		usage='limit')
+	async def _snipe(self, ctx, limit=5):
+
+		time_start = time.time()
+
+		result = self.db.kakera_claimed.aggregate([
+			{
+				'$match': {'$expr': {'$ne': ['$roller', '$claimer']}}
+			}, {
+				'$sort': {'time': -1}
+			}, {
+				'$limit': limit
+			}
+		])
+
+		# Make the embed
+		embed = discord.Embed(
+			colour=discord.Colour.green()
+		)
+		embed.set_author(name='Anna Li Snipes')
+
+		# Print the window
+		embed.add_field(
+			name=str(limit) + " most recent",
+			value="`{:<15}=> {:<15}`".format("Roller", "Claimer"),
+			inline=False
+		)
+
+		time_format = "%m/%d %H:%M"
+
+		# For each user
+		for doc in result:
+
+			# Unpack the values 
+			time_stamp, value, kakera, roller, claimer = doc['time'], doc['value'], doc['kakera'], doc['roller'], doc['claimer']
+
+			# Convert timezone and format
+			time_str = utc_to_local(time_stamp).strftime(time_format)
+
+			# Print their rolls and claims
+			embed.add_field(
+				name="`{:<15}=> {:<15}`".format(roller, claimer),
+				value= "{:<15} (**{:>6,}**) {}".format(self.MY_KAKERA_EMOTES[kakera], value, time_str),
+				inline=False
+			)
+
+		# Report the time it took to compute this
+		time_end = time.time()
+		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
+		embed.set_footer(text=compute_time)
+
+		# Send the embed stats
+		await ctx.send(embed=embed)
+
+	@_snipe.error
+	async def _snipe_error(self, ctx, error):
+		if isinstance(error, commands.BadArgument):
+			await ctx.send(error)
+		else:
+			print(error)
 
 
 
