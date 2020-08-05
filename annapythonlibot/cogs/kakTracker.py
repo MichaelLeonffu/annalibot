@@ -191,9 +191,9 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['s'],
 		brief='Kakera stas',
 		description='Reports the kakera roll and claim stats!',
-		help='days (int): how many days back to search',
-		usage='days')
-	async def _stats(self, ctx, days=1):
+		help='days (int): how many days back to search\nhours (int): how many hours back to search',
+		usage='[days] [hours]')
+	async def _stats(self, ctx, days=1, hours=0):
 
 		time_start = time.time()
 
@@ -208,7 +208,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Therefore I'm leaving this in utc and later adding tz info
 		# Basically keeping utc for any mongodb is good idea.
 		today = datetime.datetime.utcnow()
-		window = datetime.timedelta(days=-days)
+		window = datetime.timedelta(days=-days, hours=-hours)
 
 		# Create window
 		datetime_start = today + window
