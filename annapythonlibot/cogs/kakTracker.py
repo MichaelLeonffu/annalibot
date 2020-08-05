@@ -34,7 +34,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 		# Data
 		self.data = {
-			'channel': None,
+			'channel': config.STATS_TRACKER_CHANNEL_ID,
 			'last_user': None
 		}
 
@@ -353,13 +353,18 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['lock on this channel'],
 		brief='Locks to channel with rolls',
 		description='Must be done before rolls can be made',
-		help='Can only select 1 channel',
-		usage='lock')
-	async def _lock(self, ctx):
+		help='Set: to set to this channel\nReset: config defaults',
+		usage='[set|reset]')
+	async def _lock(self, ctx, reset='state'):
 
 		# Lock on this channel only
-		self.data['channel'] = ctx.channel
-		await ctx.send("Locked on: " + str(self.data['channel']))
+		if reset == 'set':
+			self.data['channel'] = ctx.channel.id
+
+		if reset == 'reset':
+			self.data['channel'] = config.STATS_TRACKER_CHANNEL_ID
+
+		await ctx.send("Locked on: " + str(self.bot.get_channel(self.data['channel'])))
 
 	@commands.command(
 		name='snipe',

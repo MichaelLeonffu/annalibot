@@ -11,3 +11,4 @@ EMOJI = [
 	":heart:",
 	":white_heart:"
 ]
+STATS_TRACKER_CHANNEL_ID = 1010101029393
