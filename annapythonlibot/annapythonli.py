@@ -7,6 +7,8 @@ import discord
 from discord.ext import commands
 # Timeit
 import timeit
+# Time
+import time
 
 
 # The bot
@@ -55,6 +57,27 @@ async def _reload_error(self, ctx, error):
 		await ctx.send("B-Baka!!! ><")
 	else:
 		print(error)
+
+
+# Keep track of time
+time_start = time.time()
+
+@bot.command(
+	name='time',
+	aliases=['t'],
+	brief='How long Anna Li has been running',
+	description='The amount of time hr:min:sec Anna Li has been running',
+	help='(More like the amount of time Anna Li bot has not been updated',
+	usage='%time')
+async def _time(ctx):
+	global time_start
+	await ctx.send(time_pretty(time.time() - time_start))
+
+
+def time_pretty(dTime):
+	hours, remainder = divmod(dTime, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
 
 
 # Connect the client to discord
