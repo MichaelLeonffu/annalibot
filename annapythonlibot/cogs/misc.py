@@ -62,7 +62,8 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
 
 		# Send message
-		await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
+		if is_back:
+			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
 
 
 # Give the cog to the bot
