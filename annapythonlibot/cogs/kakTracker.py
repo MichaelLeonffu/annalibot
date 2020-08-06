@@ -310,7 +310,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Print the window
 		embed.add_field(
 			name="Anna Li stats",
-			value=window,
+			value=window + " @" + str(hours+24*days) + " hours",
 			inline=False
 		)
 
