@@ -13,12 +13,12 @@ import time
 
 # The bot
 bot = commands.Bot(
-	command_prefix	= ('!', '%', 'a!', 'annali!', 'annali ', 'annali', 'anna li ', 'anna li'),
+	command_prefix	= ('%', 'a!', 'annali!', 'annali ', 'annali', 'anna li ', 'anna li'),
 	activity		= discord.Game(name="with fire")
 )
 
 # Cogs
-cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing']
+cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice']
 
 # Load the cogs
 if __name__ == '__main__':
