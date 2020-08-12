@@ -14,11 +14,12 @@ import time
 # The bot
 bot = commands.Bot(
 	command_prefix	= ('%', 'a!', 'annali!', 'annali ', 'annali', 'anna li ', 'anna li'),
-	activity		= discord.Game(name="with fire")
+	activity		= discord.Game(name="with fire"),
+	case_insensitive= True
 )
 
 # Cogs
-cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice']
+cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics']
 
 # Load the cogs
 if __name__ == '__main__':
@@ -26,7 +27,6 @@ if __name__ == '__main__':
 		bot.load_extension(cog)
 
 		# Add a try catch to this later sometime?
-
 
 
 # When the bot connects to discord
