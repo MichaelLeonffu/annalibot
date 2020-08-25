@@ -19,6 +19,7 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		self.bot = bot
 
 
+
 	@commands.command(
 		name='add',
 		aliases=['a'],
