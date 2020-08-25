@@ -56,6 +56,9 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 	async def on_message(self, message):
 
 
+		# If the bot is reading a message from a bot
+		if message.author.bot: return
+
 		# If the bot is reading it's own message
 		if message.author == self.bot.user: return
 
@@ -63,11 +66,11 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		# is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
 
 		# Find everything afer the "i'm "
-		is_makoa = re.search(r"i('|a| a)?m (.*)", message.content)
+		is_makoa = re.search(r"i('|a| a)?m (.*)", message.content, re.IGNORECASE)
 
 		# Send message
 		if is_makoa:
-			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
+			await message.channel.send("Hi {} I'm Anna Li".format(is_makoa.group(2)))
 
 
 # Give the cog to the bot
