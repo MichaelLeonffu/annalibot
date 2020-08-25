@@ -30,6 +30,19 @@ class TestCog(commands.Cog, name="Test Commands"):
 	async def test(self, ctx, *args, hidden=True):
 		await ctx.send('{} arguments: {}'.format(len(args), ', '.join(args)))
 
+	# If someone @annalibot then tell them the help prompt
+	@commands.Cog.listener()
+	async def on_message(self, message):
+
+		# If the bot is reading it's own message
+		if message.author == self.bot.user:
+			return
+
+		# If it only mentions 1 person and that person is the bot
+		# (redundancy but also checking if that message is only @ the bot)
+		# if len(message.mentions) == 1 and self.bot.user.id == message.mentions[0].id:
+		if message.content == ("<@!%s>" % self.bot.user.id):
+			await message.channel.send("Wah? use %help")
 
 	@commands.command(
 		name='embed',
