@@ -60,10 +60,13 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		if message.author == self.bot.user: return
 
 		# Find everything including the "back ..."
-		is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
+		# is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
+
+		# Find everything afer the "i'm "
+		is_makoa = re.search(r"i('|a| a)?m (.*)", message.content)
 
 		# Send message
-		if is_back:
+		if is_makoa:
 			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
 
 
