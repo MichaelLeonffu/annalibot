@@ -222,8 +222,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['s'],
 		brief='Kakera stas',
 		description='Reports the kakera roll and claim stats!',
-		help='days (int): how many days back to search\nhours (int): how many hours back to search',
-		usage='[days] [hours]')
+		help='days (int): how many days back to search\nhours (int): how many hours back to search')
 	async def _stats(self, ctx, days=1, hours=0):
 
 		time_start = time.time()
@@ -385,8 +384,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['flex dat', 'flex', 'dat', 'gold'],
 		brief='Gold key kakera stas',
 		description='Reports the kakera from gold key rolls!',
-		help='days (int): how many days back to search\nhours (int): how many hours back to search',
-		usage='[days] [hours]')
+		help='days (int): how many days back to search\nhours (int): how many hours back to search')
 	async def _flex_dat_gold(self, ctx, days=1, hours=0):
 
 		time_start = time.time()
@@ -472,8 +470,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['lock on this channel'],
 		brief='Locks to channel with rolls',
 		description='Must be done before rolls can be made',
-		help='Set: to set to this channel\nReset: config defaults',
-		usage='[set|reset]')
+		help='Set: to set to this channel\nReset: config defaults')
 	async def _lock(self, ctx, reset='state'):
 
 		# Lock on this channel only
@@ -491,8 +488,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		aliases=['steal', 'snips', 'snip'],
 		brief='Last 10 snips',
 		description='Who sniped who?!',
-		help='limit: the amount of recent snips to show',
-		usage='limit')
+		help='limit: the amount of recent snips to show')
 	async def _snipe(self, ctx, limit=5):
 
 		time_start = time.time()
