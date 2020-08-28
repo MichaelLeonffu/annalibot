@@ -379,6 +379,94 @@ class TrackCog(commands.Cog, name="Tracking"):
 		else:
 			print(error)
 
+
+	@commands.command(
+		name='flex_dat_gold',
+		aliases=['flex dat', 'flex', 'dat', 'gold'],
+		brief='Gold key kakera stas',
+		description='Reports the kakera from gold key rolls!',
+		help='days (int): how many days back to search\nhours (int): how many hours back to search',
+		usage='[days] [hours]')
+	async def _flex_dat_gold(self, ctx, days=1, hours=0):
+
+		time_start = time.time()
+
+		# Make the embed
+		embed = discord.Embed(
+			colour=discord.Colour.gold()
+		)
+		# embed.set_author(name='Anna Li stats')
+
+
+		# I'm guessing that doing this operation kills the tz info
+		# Therefore I'm leaving this in utc and later adding tz info
+		# Basically keeping utc for any mongodb is good idea.
+		today = datetime.datetime.utcnow()
+		window = datetime.timedelta(days=-days, hours=-hours)
+
+		# Create window
+		datetime_start = today + window
+		datetime_end = today
+
+		result = self.db.kakera_gold_key.aggregate([
+			{
+				'$match': {
+					'time': {
+						'$gte': datetime_start,
+						'$lt': datetime_end
+					}
+				}
+			}, {
+				'$group': {
+					'_id': '$claimer',
+					'value':{'$sum':"$value"},
+					'count':{'$sum':1}
+				}
+			}, {
+				'$sort':{'value': -1}
+			}
+		])
+
+		# Format time
+		time_format = "%m/%d %H:%M"
+		window = utc_to_local(datetime_start).strftime(time_format) + " - " + utc_to_local(datetime_end).strftime(time_format)
+
+		# Print the window
+		embed.add_field(
+			name="Anna Li Gold key stats",
+			value=window + " @" + str(hours+24*days) + " hours",
+			inline=False
+		)
+
+		# For each user
+		for doc in result:
+
+			# Unpack the values
+			name, value, count = doc['_id'], doc['value'], doc['count']
+
+			# Print their rolls and claims
+			embed.add_field(
+				name= name,
+				value="`{:10}{:>8,}`".format("Count:" + str(count), value),
+				inline=False
+			)
+
+		# Report the time it took to compute this
+		time_end = time.time()
+		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
+		embed.set_footer(text=compute_time)
+
+		# Send the embed stats
+		await ctx.send(embed=embed)
+
+	@_flex_dat_gold.error
+	async def _flex_dat_gold_error(self, ctx, error):
+		if isinstance(error, commands.BadArgument):
+			await ctx.send(error)
+		else:
+			print(error)
+
+
 	@commands.command(
 		name='lock',
 		aliases=['lock on this channel'],
@@ -396,6 +484,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			self.data['channel'] = config.STATS_TRACKER_CHANNEL_ID
 
 		await ctx.send("Locked on: " + str(self.bot.get_channel(self.data['channel'])))
+
 
 	@commands.command(
 		name='snipe',
