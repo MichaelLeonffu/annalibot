@@ -15,6 +15,8 @@ import time
 import datetime
 # mongodb
 import pymongo
+# pprint
+import pprint
 
 
 def utc_to_local(utc_dt):
@@ -102,18 +104,47 @@ class TrackCog(commands.Cog, name="Tracking"):
 			self.data['last_user'] = message.author.name
 			return
 
+		# Check if the message has a embed in it (checking for gold +kakeras)
+		if len(message.embeds) == 1:
+
+			# Check if that message has a kakera gain
+			kakera_gold_key = re.search(r'\*\*\+(\d+)\*\*<:kakera:469835869059153940>', ''.join(message.embeds[0].to_dict()['description']))
+
+			# If there was a real kakera gain then count it
+			if kakera_gold_key:
+
+				# Extract the kakera value from what the key was worth
+				kakera_value = kakera_gold_key.group(1)
+
+				# There are always name in the footer if it was a authentic gold key rolled
+				name = message.embeds[0].to_dict()['footer']['text'][len('Belongs to '):]
+
+				await message.channel.send(name + " you got: " + str(kakera_value))
+
+				# Prepare doc
+				doc = {
+					'time': 	datetime.datetime.utcnow(),
+					'claimer':	name,
+					'value': 	int(kakera_value)
+				}
+
+				# Upload data to server
+				self.db.kakera_gold_key.insert_one(doc)
+				return
+
+
 		# pprint.pprint(message.embeds[0].to_dict()['description'])
 		# print(message.author, message.content, message.reactions)
 		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
 
-		kakera_collect = re.search('(<:kakera[PTGYORW]?:\d+>)(\(Free\) )?\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
+		kakera_collect = re.search(r'(<:kakera[PTGYORW]?:\d+>)(\(Free\) )?\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
 
 		# Count when the kakera was collected
 		if kakera_collect:
 
 			# Figureout which kakera it was; convert from full name to name
 			kakera_type = kakera_collect.group(1)
-			kakera_type = re.search('<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
+			kakera_type = re.search(r'<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
 
 			name = kakera_collect.group(3)
 
