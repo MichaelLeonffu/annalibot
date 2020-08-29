@@ -486,7 +486,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 	@commands.command(
 		name='snipe',
 		aliases=['steal', 'snips', 'snip'],
-		brief='Last 10 snips',
+		brief='Last 5 snips',
 		description='Who sniped who?!',
 		help='limit: the amount of recent snips to show')
 	async def _snipe(self, ctx, limit=5):
@@ -549,6 +549,243 @@ class TrackCog(commands.Cog, name="Tracking"):
 		else:
 			print(error)
 
+
+	@commands.command(
+		name='snipe_table',
+		aliases=['snipe table', 'st'],
+		brief='Day worth of snipes',
+		description='Who sniped who?!',
+		help='sniped (str): user name of sniped\ndays (int): how many days back to search\nhours (int): how many hours back to search')
+	async def _snipe_table(self, ctx, sniped, days=1, hours=0):
+
+		time_start = time.time()
+
+		# I'm guessing that doing this operation kills the tz info
+		# Therefore I'm leaving this in utc and later adding tz info
+		# Basically keeping utc for any mongodb is good idea.
+		today = datetime.datetime.utcnow()
+		window = datetime.timedelta(days=-days, hours=-hours)
+
+		# Create window
+		datetime_start = today + window
+		datetime_end = today
+
+		# Finding all results of snipes related to sniped
+		result = self.db.kakera_claimed.aggregate([
+			{
+				'$match': {
+					'time': {
+						'$gte': datetime_start,
+						'$lt': datetime_end
+					}
+				}
+		    }, {
+		        '$match': {
+		            '$expr': {
+		                '$or': [
+		                    {
+		                        '$eq': [
+		                            '$roller', str(sniped)
+		                        ]
+		                    }, {
+		                        '$eq': [
+		                            '$claimer', str(sniped)
+		                        ]
+		                    }
+		                ]
+		            }
+		        }
+		    }, {
+		        '$match': {
+		            '$expr': {
+		                '$ne': [
+		                    '$roller', '$claimer'
+		                ]
+		            }
+		        }
+		    }, {
+		        '$group': {
+		            '_id': {
+		                'roller': '$roller',
+		                'claimer': '$claimer',
+		                'kakera': '$kakera'
+		            },
+		            'value': {
+		                '$sum': '$value'
+		            },
+		            'count': {
+		                '$sum': 1
+		            }
+		        }
+		    }, {
+		        '$group': {
+		            '_id': {
+		                'roller': '$_id.roller',
+		                'claimer': '$_id.claimer'
+		            },
+		            'value': {
+		                '$sum': '$value'
+		            },
+		            'kakera': {
+		                '$push': {
+		                    'k': '$_id.kakera',
+		                    'v': {
+		                        'value': '$value',
+		                        'count': '$count'
+		                    }
+		                }
+		            }
+		        }
+		    }, {
+		        '$project': {
+		            '_id': 0,
+		            'roller': '$_id.roller',
+		            'claimer': '$_id.claimer',
+		            'value': 1,
+		            'kakera': {
+		                '$arrayToObject': '$kakera'
+		            }
+		        }
+		    }, {
+		        '$sort': {
+		            'value': -1
+		        }
+		    }, {
+		        '$facet': {
+		            'sniped': [
+		                {
+		                    '$match': {
+		                        '$expr': {
+		                            '$eq': [
+		                                '$roller', str(sniped)
+		                            ]
+		                        }
+		                    }
+		                }
+		            ],
+		            'sniper': [
+		                {
+		                    '$match': {
+		                        '$expr': {
+		                            '$eq': [
+		                                '$claimer', str(sniped)
+		                            ]
+		                        }
+		                    }
+		                }
+		            ]
+		        }
+		    }
+		])
+
+		# Make the embed
+		embed = discord.Embed(
+			colour=discord.Colour.purple()
+		)
+		# embed.set_author(name='Anna Li Snipe Table')
+
+		time_format = "%m/%d %H:%M"
+		window = utc_to_local(datetime_start).strftime(time_format) + " - " + utc_to_local(datetime_end).strftime(time_format)
+
+		# Print the window
+		embed.add_field(
+			name="Anna Li Snipe table",
+			value=window + " @" + str(hours+24*days) + " hours",
+			inline=False
+		)
+
+		# Only one doc should be resulted
+		oneResult = list(result)[0]
+
+		# Print the window
+		embed.add_field(
+			name="You are the Sniper: " + sniped,
+			value="You've sniped:",
+			inline=False
+		)
+
+		# Generate the sniper data first (for each sniper) sniper = claimer = us;
+		for doc in oneResult['sniper']:
+
+			# Unpack the values
+			value, kakeras, roller, claimer = doc['value'], doc['kakera'], doc['roller'], doc['claimer']
+
+
+			# Format kakeras to be a list in order
+			kakera_formated = []
+
+			# For each of the kakera
+			for kname in self.KAKERA_NAME:
+
+				# For each of them by name
+				if kname in kakeras:
+					kakera_formated.append({'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
+				else:
+					kakera_formated.append({'value': 0, 'count': 0})
+
+			kakera_list = self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(k['count']) + "**" for k in kakera_formated])
+
+			embed.add_field(
+				name="`" + "{:15} {:>10}{:>8,}".format(roller, "Count:" + str("#?"), value) + "`",
+				# name="`{:<15}=> {:<15}: {}`".format(roller, claimer, value),
+				# value= "{:<15} {}(**{:>6,}**) {}".format(self.MY_KAKERA_EMOTES[kname], kakeras[kname]['count'], kakeras[kname]['value'], "lol"),
+				value=kakera_list,
+				inline=False
+			)
+
+		# Print the window
+		embed.add_field(
+			name="You are the Sniped: " + sniped,
+			value="You've been Sniped by:",
+			inline=False
+		)
+
+		# Generate the sniped data first (for each sniped) sniped = roller = us;
+		for doc in oneResult['sniped']:
+
+			# Unpack the values
+			value, kakeras, roller, claimer = doc['value'], doc['kakera'], doc['roller'], doc['claimer']
+
+
+			# Format kakeras to be a list in order
+			kakera_formated = []
+
+			# For each of the kakera
+			for kname in self.KAKERA_NAME:
+
+				# For each of them by name
+				if kname in kakeras:
+					kakera_formated.append({'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
+				else:
+					kakera_formated.append({'value': 0, 'count': 0})
+
+			kakera_list = self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(k['count']) + "**" for k in kakera_formated])
+
+			embed.add_field(
+				name="`" + "{:15} {:>10}{:>8,}".format(claimer, "Count:" + str("#?"), value) + "`",
+				# name="`{:<15}=> {:<15}: {}`".format(roller, claimer, value),
+				# value= "{:<15} {}(**{:>6,}**) {}".format(self.MY_KAKERA_EMOTES[kname], kakeras[kname]['count'], kakeras[kname]['value'], "lol"),
+				value=kakera_list,
+				inline=False
+			)
+
+
+		# Report the time it took to compute this
+		time_end = time.time()
+		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
+		embed.set_footer(text=compute_time)
+
+		# Send the embed stats
+		await ctx.send(embed=embed)
+
+	# @_snipe_table.error
+	# async def _snipe_table_error(self, ctx, error):
+	# 	if isinstance(error, commands.BadArgument):
+	# 		await ctx.send(error)
+	# 	if isinstance(error, commands.MissingRequiredArgument):
+	# 		await ctx.send(error)
+	# 	else:
+	# 		print(error)
 
 
 # Give the cog to the bot
