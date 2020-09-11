@@ -63,14 +63,14 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		if message.author == self.bot.user: return
 
 		# Find everything including the "back ..."
-		is_back = re.search(r"i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
+		is_back = re.search(r"(^| )i('|a| a)?m ?(back [^\n]+|back$|back\s)", message.content)
 
 		# Find everything afer the "i'm "
 		# is_back = re.search(r"i('|a| a)?m (.*)", message.content, re.IGNORECASE)
 
 		# Send message
 		if is_back:
-			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(2)))
+			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(3)))
 
 
 # Give the cog to the bot
