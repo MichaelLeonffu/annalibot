@@ -107,6 +107,15 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Check if the message has a embed in it (checking for gold +kakeras)
 		if len(message.embeds) == 1:
 
+			# Also check if this character is in the 10 key alert and who wants that alert
+			result = self.db.alert10.find_one({
+				'character': message.embeds[0].to_dict()['author']['name'].lower()
+			})
+
+			# If there is a result then mention the user
+			if result != None:
+				await message.channel.send("10 Key: {}".format(self.bot.get_user(result['owner']).mention))
+
 			# Check if that message has a kakera gain
 			kakera_gold_key = re.search(r'\*\*\+(\d+)\*\*<:kakera:469835869059153940>', ''.join(message.embeds[0].to_dict()['description']))
 
@@ -783,6 +792,74 @@ class TrackCog(commands.Cog, name="Tracking"):
 	# 	if isinstance(error, commands.BadArgument):
 	# 		await ctx.send(error)
 	# 	if isinstance(error, commands.MissingRequiredArgument):
+	# 		await ctx.send(error)
+	# 	else:
+	# 		print(error)
+
+	@commands.command(
+		name='alert',
+		aliases=['alrt'],
+		brief='10 Key alert',
+		description='Mentions user that has set the alert for this character',
+		help='Mentions the user that set the alert')
+	async def _alert(self, ctx, *arg):
+
+		# Input parsing
+		characters = ' '.join(arg).split('$')
+
+		# Input doc for each character per this user
+		if len(characters) > 0:
+
+			# Prepare docs
+			docs = [{
+				'owner': 		ctx.author.id,
+				'character': 	character.strip().lower()
+			} for character in characters]
+
+			# Upload data to server
+			self.db.alert10.insert_many(docs)
+
+			return await ctx.send("Added {} characters to alert".format(len(characters)))
+
+		await ctx.send("Failed to add characters")
+
+	# @_alert.error
+	# async def _alert(self, ctx, error):
+	# 	if isinstance(error, commands.BadArgument):
+	# 		await ctx.send(error)
+	# 	else:
+	# 		print(error)
+
+	@commands.command(
+		name='alert_list',
+		aliases=['al'],
+		brief='10 Key alert list',
+		description='Mentions user that has set the alert for this character',
+		help='Mentions the user that set the alert')
+	async def alert_list(self, ctx):
+
+		# Select the user to read from
+
+		# Read from the sender
+		user = ctx.author
+		# If there is a mentions use that user
+		if len(ctx.message.mentions) >= 1:
+			user = ctx.message.mentions[0]
+
+		# Gather all the characters in alert for this person
+		results = self.db.alert10.find({
+			'owner': user.id
+		})
+
+		# Generate it into an array
+		characters = [result['character'] for result in list(results)]
+
+		# Send the embed stats
+		await ctx.send(', '.join(characters))
+
+	# @alert_list.error
+	# async def alert_list(self, ctx, error):
+	# 	if isinstance(error, commands.BadArgument):
 	# 		await ctx.send(error)
 	# 	else:
 	# 		print(error)
