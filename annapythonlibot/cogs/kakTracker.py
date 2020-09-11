@@ -567,6 +567,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 		help='sniped (str): user name of sniped\ndays (int): how many days back to search\nhours (int): how many hours back to search')
 	async def _snipe_table(self, ctx, sniped, days=1, hours=0):
 
+		kakera_filter = ['kakeraP', 'kakeraO', 'kakeraR', 'kakeraW']
+
 		time_start = time.time()
 
 		# I'm guessing that doing this operation kills the tz info
@@ -586,7 +588,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 					'time': {
 						'$gte': datetime_start,
 						'$lt': datetime_end
-					}
+					},
+					'kakera': { '$in': kakera_filter}
 				}
 		    }, {
 		        '$match': {
@@ -724,15 +727,15 @@ class TrackCog(commands.Cog, name="Tracking"):
 			kakera_formated = []
 
 			# For each of the kakera
-			for kname in self.KAKERA_NAME:
+			for kname in kakera_filter:
 
 				# For each of them by name
 				if kname in kakeras:
-					kakera_formated.append({'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
+					kakera_formated.append({'kakera': kname, 'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
 				else:
-					kakera_formated.append({'value': 0, 'count': 0})
+					kakera_formated.append({'kakera': kname, 'value': 0, 'count': 0})
 
-			kakera_list = self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(k['count']) + "**" for k in kakera_formated])
+			kakera_list = ' '.join(["**" + str(k['count']) + "**" + self.MY_KAKERA_EMOTES[k['kakera']] for k in kakera_formated])
 
 			embed.add_field(
 				name="`" + "{:15} {:>10}{:>8,}".format(roller, "Count:" + str("#?"), value) + "`",
@@ -760,15 +763,15 @@ class TrackCog(commands.Cog, name="Tracking"):
 			kakera_formated = []
 
 			# For each of the kakera
-			for kname in self.KAKERA_NAME:
+			for kname in kakera_filter:
 
 				# For each of them by name
 				if kname in kakeras:
-					kakera_formated.append({'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
+					kakera_formated.append({'kakera': kname, 'value': kakeras[kname]['value'], 'count': kakeras[kname]['count']})
 				else:
-					kakera_formated.append({'value': 0, 'count': 0})
+					kakera_formated.append({'kakera': kname, 'value': 0, 'count': 0})
 
-			kakera_list = self.KAKERA_STATS_TEMPLATE % tuple(["**" + str(k['count']) + "**" for k in kakera_formated])
+			kakera_list = ' '.join(["**" + str(k['count']) + "**" + self.MY_KAKERA_EMOTES[k['kakera']] for k in kakera_formated])
 
 			embed.add_field(
 				name="`" + "{:15} {:>10}{:>8,}".format(claimer, "Count:" + str("#?"), value) + "`",
