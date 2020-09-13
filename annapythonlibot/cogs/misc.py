@@ -70,6 +70,26 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 
 
 	@commands.command(
+		name='mypic',
+		# aliases=['mypic'],
+		brief='Show this profile pic',
+		description='You wana see yourself?',
+		help='Lets get that for you')
+	async def _mypic(self, ctx, size=1024):
+		await ctx.send(ctx.author.avatar_url_as(size=size))
+
+
+	@commands.command(
+		name='yourpic',
+		# aliases=['yourpic'],
+		brief='Show your profile pic',
+		description='You wana see someone else?',
+		help='Lets get that for you')
+	async def _myourpic(self, ctx, mention, size=1024):
+		await ctx.send((await commands.MemberConverter().convert(ctx, mention)).avatar_url_as(size=size))
+
+
+	@commands.command(
 		name='add',
 		aliases=['sum'],
 		brief='Adds one or more numbers',
@@ -109,7 +129,8 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 			total /= nums.pop()
 		await ctx.send(total)
 
-
+	@_mypic.error
+	@_myourpic.error
 	@_div.error
 	@_mul.error
 	@_add.error
