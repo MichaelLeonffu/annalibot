@@ -59,7 +59,7 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 	# 				top_op = operator_stack.pop()
 	# 				op1, op2 = operand_stack.pop(), operand_stack.pop()
 	# 				operand_stack.append(eval("op1 top_op op2"))
-				
+
 	# 		else:							# Operand
 	# 			# If it is not a valid operand then stop
 	# 			if not arg.isnumeric():
@@ -67,7 +67,7 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 	# 			operand_stack.append(arg)
 
 	# 	await ctx.send(arg)
-	
+
 
 	@commands.command(
 		name='add',
