@@ -20,36 +20,101 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 
 
 
+	# @commands.command(
+	# 	name='math',
+	# 	aliases=['m'],
+	# 	brief='Does math',
+	# 	description='So Anna Li can do math, what can you do?',
+	# 	help='Anna Li can do your math! (Supported + - * /)',
+	# 	rest_is_raw=True)
+	# async def _math(self, ctx, *args):
+
+	# 	# Remove all the space and join together
+	# 	args = ''.join(args)
+
+	# 	# Separating between numbers and operators
+	# 	acc = ""
+	# 	infix = []
+	# 	for arg in args:
+	# 		if arg.isnumeric():
+	# 			acc += arg
+	# 		else:
+	# 			infix.append(acc)
+	# 			infix.append(arg)
+	# 			acc = ""
+
+	# 	# This is likely given in infix notation
+	# 	operator_stack, operand_stack = [], []
+
+	# 	# Valid operators currently
+	# 	operators = "- + / * ( )".split(' ')
+
+	# 	# Precedence rules PEMDAS
+	# 	precedence_rules = {op: operators.index(op) for op in operators}
+
+	# 	# Algorithm
+	# 	for arg in infix:
+	# 		if arg in operators:			# Operator
+	# 			while precedence_rules[operator_stack[-1:]] >= arg:
+	# 				top_op = operator_stack.pop()
+	# 				op1, op2 = operand_stack.pop(), operand_stack.pop()
+	# 				operand_stack.append(eval("op1 top_op op2"))
+				
+	# 		else:							# Operand
+	# 			# If it is not a valid operand then stop
+	# 			if not arg.isnumeric():
+	# 				return await ctx.send("Invalid operand: {}".format(arg))
+	# 			operand_stack.append(arg)
+
+	# 	await ctx.send(arg)
+	
+
 	@commands.command(
 		name='add',
-		aliases=['a'],
-		brief='Adds two numbers',
-		description='So I\' hear that you wana add two numbers ;)',
-		help='Well, with the `add` command you can do just that!',
-		usage='%add(number a, number b)')
-	async def _add(self, ctx, a: float, b: float):
-		await ctx.send(a + b)
-
-	@_add.error
-	async def _add_error(self, ctx, error):
-		if isinstance(error, commands.BadArgument):
-			await ctx.send(error)
+		aliases=['sum'],
+		brief='Adds one or more numbers',
+		description='So I\' hear that you wana add one or more numbers ;)',
+		help='Well, with the `add` command you can do just that!')
+	async def _add(self, ctx, *nums: float):
+		if len(nums) < 1: await ctx.send("Requires at least one number")
+		await ctx.send(sum(nums))
 
 
 	@commands.command(
 		name='mul',
-		aliases=['m'],
-		brief='Mulitplies two numbers',
-		description='So I\' hear that you wana multiply two numbers ;)',
-		help='Well, with the `mul` command you can do just that!',
-		usage='%mul(number a, number b)')
-	async def _mul(self, ctx, a: float, b: float):
-		await ctx.send(a * b)
+		aliases=['multiply'],
+		brief='Mulitplies one or more numbers',
+		description='So I\' hear that you wana multiply one or more numbers ;)',
+		help='Well, with the `mul` command you can do just that!')
+	async def _mul(self, ctx, *nums: float):
+		if len(nums) < 1: await ctx.send("Requires at least one number")
+		total = 1
+		for num in nums:
+			total *= num
+		await ctx.send(total)
 
+
+	@commands.command(
+		name='div',
+		aliases=['divide'],
+		brief='Divide one or more numbers',
+		description='So I\' hear that you wana divide one or more numbers ;)',
+		help='Well, with the `divide` command you can do just that!')
+	async def _div(self, ctx, *nums: float):
+		if len(nums) < 1: await ctx.send("Requires at least one number")
+		nums = list(nums)
+		nums.reverse()
+		total = nums.pop()
+		while len(nums) > 0:
+			total /= nums.pop()
+		await ctx.send(total)
+
+
+	@_div.error
 	@_mul.error
-	async def _mul_error(self, ctx, error):
-		if isinstance(error, commands.BadArgument):
-			await ctx.send(error)
+	@_add.error
+	async def _any_error(self, ctx, error):
+		await ctx.send(error)
 
 	# Attempt to be a dad for those who are "back"
 	@commands.Cog.listener()
