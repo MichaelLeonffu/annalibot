@@ -8,6 +8,8 @@ import discord
 from discord.ext import commands
 # Regex
 import re
+# AsyncIo
+import asyncio
 
 
 # Our simple cog
@@ -157,6 +159,14 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		# Send message
 		if is_back:
 			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(3)))
+
+		print(message.content)
+
+		# Spooky
+		if "spooky" in message.content.lower() or "spooked" in message.content.lower():
+			await message.add_reaction('👻')
+			await asyncio.sleep(2)
+			await message.remove_reaction('👻', self.bot.user)
 
 
 # Give the cog to the bot
