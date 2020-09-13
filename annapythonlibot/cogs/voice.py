@@ -36,11 +36,9 @@ class VoiceCog(commands.Cog, name="Voice"):
 	@commands.Cog.listener()
 	async def on_voice_state_update(self, member, before, after):
 
-		print("member", member)
-		print("before", before)
-		print("after", after)
-		print()
-
+		# print("member", member)
+		# print("before", before)
+		# print("after", after)
 		return
 
 
