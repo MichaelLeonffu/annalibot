@@ -160,8 +160,6 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		if is_back:
 			await message.channel.send("Hi {} I'm Anna Li".format(is_back.group(3)))
 
-		print(message.content)
-
 		# Spooky
 		if "spooky" in message.content.lower() or "spooked" in message.content.lower():
 			await message.add_reaction('👻')
