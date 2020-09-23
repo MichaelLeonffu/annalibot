@@ -19,7 +19,7 @@ bot = commands.Bot(
 )
 
 # Cogs
-cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics', 'cogs.waifureader']
+cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics', 'cogs.waifureader', 'cogs.cat']
 
 # Load the cogs
 if __name__ == '__main__':
