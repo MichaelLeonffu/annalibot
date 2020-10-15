@@ -154,6 +154,9 @@ class CatCog(commands.Cog, name="Cat"):
 			colour=discord.Colour.orange()
 		)
 
+		# Set user image
+		embed.set_thumbnail(url=user.avatar_url_as(size=1024))
+
 		# Cat list name
 		list_name = user_data['listName']
 		if len(list_name) < 1:
@@ -193,27 +196,27 @@ class CatCog(commands.Cog, name="Cat"):
 			}
 		])
 
-		# Print the window
-		embed.add_field(
-			name="Cats",
-			value="value",
-			inline=False
-		)
-
 		result = list(result)[0]
 
-		# For each cat
-		for cat in result['cats']:
+		# # For each cat
+		# for cat in result['cats']:
 
-			# Unpack the values
-			cat_type = cat['catType']
+		# 	# Unpack the values
+		# 	cat_type = cat['catType']
 
-			# Print their rolls and claims
-			embed.add_field(
-				name= cat_type,
-				value="old",
-				inline=False
-			)
+		# 	# Print their rolls and claims
+		# 	embed.add_field(
+		# 		name= cat_type,
+		# 		value="old",
+		# 		inline=False
+		# 	)
+
+		catsTypes = "\n".join([cat['catType'] for cat in result['cats']])
+		embed.add_field(
+			name="Cat List",
+			value="\n\n" + catsTypes,
+			inline=False
+		)
 
 		# Report the time it took to compute this
 		time_end = time.time()
