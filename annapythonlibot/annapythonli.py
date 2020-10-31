@@ -9,6 +9,8 @@ from discord.ext import commands
 import timeit
 # Time
 import time
+# Subprocess
+import subprocess
 
 
 # The bot
@@ -51,8 +53,32 @@ async def _reload(ctx):
 
 	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
 
+def git_pull(result):
+	bash = "git pull"
+	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
+	result['output'], result['error'] = process.communicate()
+
+# Perform a git pull
+@bot.command(
+	name="git_pull",
+	aliases=['pull'],
+	hidden=True
+)
+@commands.check(is_admin)
+async def _git_pull(ctx):
+	confirmation = await ctx.send("Pulling")
+
+	result = {'output': '', 'error': ''}
+
+	time = timeit.timeit(lambda: [git_pull(result)], number=1)
+
+	res = result[(['error', 'output'][result['error'] == None])].decode()
+
+	await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
+
 @_reload.error
-async def _reload_error(self, ctx, error):
+@_git_pull.error
+async def _admin_error(self, ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await ctx.send("B-Baka!!! ><")
 	else:
