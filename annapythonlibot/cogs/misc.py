@@ -10,6 +10,8 @@ from discord.ext import commands
 import re
 # AsyncIo
 import asyncio
+# random
+import random
 
 
 # Our simple cog
@@ -165,6 +167,10 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 			await message.add_reaction('👻')
 			await asyncio.sleep(2)
 			await message.remove_reaction('👻', self.bot.user)
+
+		# Halloween update!
+		if random.random() < 0.5:
+			await message.add_reaction(random.choice(['👻', '🎃', '🍬', '🍭']))
 
 
 # Give the cog to the bot
