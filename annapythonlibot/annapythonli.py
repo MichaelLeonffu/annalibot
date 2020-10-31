@@ -53,6 +53,29 @@ async def _reload(ctx):
 
 	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
 
+# (Un)Load exentions (cogs and listeners)
+@bot.command(
+	name="xload",
+	hidden=True
+)
+@commands.check(is_admin)
+async def _xload(ctx, xload, ext):
+	confirmation = await ctx.send("Reloading")
+
+	if xload == "load":
+		time = timeit.timeit(lambda: [bot.load_extension(ext)], number=1)
+	elif xload == "unload":
+		time = timeit.timeit(lambda: [bot.unload_extension(ext)], number=1)
+	elif xload == "reload":
+		time = timeit.timeit(lambda: [bot.reload_extension(ext)], number=1)
+	elif xload == "list":
+		await confirmation.edit(content="`{}`".format(str(bot.cogs)))
+	else:
+		await confirmation.edit(content="`xload ([,un,re]load) cogs.name`")
+		raise ValueError("Bad ([,un,re]load)")
+
+	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
+
 def git_pull(result):
 	bash = "git pull"
 	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
@@ -116,7 +139,8 @@ async def _presence(ctx, presence_type, *names):
 @_reload.error
 @_git_pull.error
 @_presence.error
-async def _admin_error(self, ctx, error):
+@_xload.error
+async def _admin_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await ctx.send("B-Baka!!! ><")
 	elif isinstance(error, ValueError):
