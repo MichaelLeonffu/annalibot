@@ -76,11 +76,51 @@ async def _git_pull(ctx):
 
 	await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
 
+# Change presence
+@bot.command(
+	name="presence",
+	aliases=['press'],
+	hidden=True
+)
+@commands.check(is_admin)
+async def _presence(ctx, presence_type, *names):
+	confirmation = await ctx.send("Presenceing...")
+
+	# Join the input string
+	name = ' '.join(names)
+
+	if name == '':
+		await confirmation.edit(content="`anna li press int *string`")
+		raise ValueError("Empty name")
+
+	# Set activity
+	activities = [
+		('Plying', 		discord.Game(name=name)),
+		('Streaming', 	discord.Streaming(name=name, url='https://www.twitch.tv/larypie')),
+		('Listening', 	discord.Activity(type=discord.ActivityType.listening, name=name)),
+		('Watching', 	discord.Activity(type=discord.ActivityType.watching, name=name))
+	]
+
+	try:
+		activity = activities[int(presence_type)]
+	except:
+		acts = '\n'.join([str(i) + " = " + activities[i][0] for i in range(0, len(activities))])
+		await confirmation.edit(content="```{}```".format(acts))
+		raise ValueError("Out of bounds activity")
+
+	# Set presence
+	await bot.change_presence(activity=activity[1])
+
+	await confirmation.edit(content="Presence set to: `{} {}`".format(activity[0], name))
+
 @_reload.error
 @_git_pull.error
+@_presence.error
 async def _admin_error(self, ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await ctx.send("B-Baka!!! ><")
+	elif isinstance(error, ValueError):
+		print(error)
 	else:
 		print(error)
 
