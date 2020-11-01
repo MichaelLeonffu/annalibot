@@ -133,11 +133,22 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 			total /= nums.pop()
 		await ctx.send(total)
 
+	@commands.command(
+		name='say',
+		aliases=['tell'],
+		brief='Anna Li says something',
+		description='Anna Li can say something for you if you are shy',
+		help='Do not use profanity!')
+	async def _say(self, ctx, *, phrase):
+		await ctx.message.delete()
+		await ctx.send(phrase)
+
 	@_mypic.error
 	@_myourpic.error
-	@_div.error
-	@_mul.error
 	@_add.error
+	@_mul.error
+	@_div.error
+	@_say.error
 	async def _any_error(self, ctx, error):
 		await ctx.send(error)
 
