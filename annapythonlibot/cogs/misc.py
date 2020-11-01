@@ -12,6 +12,8 @@ import re
 import asyncio
 # random
 import random
+# datetime
+import datetime
 
 
 # Our simple cog
@@ -176,11 +178,11 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		# Spooky
 		if "spooky" in message.content.lower() or "spooked" in message.content.lower():
 			await message.add_reaction('👻')
-			await asyncio.sleep(2)
+			await asyncio.sleep(1)
 			await message.remove_reaction('👻', self.bot.user)
 
 		# Halloween update!
-		if random.random() < 0.5:
+		if datetime.datetime.now().strftime("%d/%m") == "31/10" and random.random() < 0.5:
 			await message.add_reaction(random.choice(['👻', '🎃', '🍬', '🍭']))
 
 
