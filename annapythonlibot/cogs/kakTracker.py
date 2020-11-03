@@ -839,7 +839,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		brief='10 Key unalert',
 		description='Removes an alert',
 		help='In the case you do not want to be alerted anymore')
-	async def _alert(self, ctx, *arg):
+	async def _unalert(self, ctx, *arg):
 
 		# Input parsing
 		characters = ' '.join(arg).split('$')
