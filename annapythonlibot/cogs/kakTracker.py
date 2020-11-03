@@ -834,6 +834,45 @@ class TrackCog(commands.Cog, name="Tracking"):
 	# 		print(error)
 
 	@commands.command(
+		name='unalert',
+		aliases=['ua'],
+		brief='10 Key unalert',
+		description='Removes an alert',
+		help='In the case you do not want to be alerted anymore')
+	async def _alert(self, ctx, *arg):
+
+		# Input parsing
+		characters = ' '.join(arg).split('$')
+
+		# Input doc for each character per this user
+		if len(characters) > 0:
+
+			# Prepare docs
+			docs = [{
+				'owner': 		ctx.author.id,
+				'character': 	character.strip().lower()
+			} for character in characters]
+
+			for doc in docs:
+
+				# Delete one data from server
+				result = self.db.alert10.delete_one(doc)
+
+				if result.deleted_count != 1:
+					await ctx.send("Failed to unalert **{}** from alert".format(doc['character']))
+
+			return await ctx.send("Processed **{}** characters".format(len(characters)))
+
+		await ctx.send("Failed to remove characters")
+
+	# @_unalert.error
+	# async def _unalert_error(self, ctx, error):
+	# 	if isinstance(error, commands.BadArgument):
+	# 		await ctx.send(error)
+	# 	else:
+	# 		print(error)
+
+	@commands.command(
 		name='alert_list',
 		aliases=['al'],
 		brief='10 Key alert list',
@@ -857,8 +896,19 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Generate it into an array
 		characters = [result['character'] for result in list(results)]
 
+		# Message to send limited to 2000 characters
+		message = ""
+		for character in characters:
+			if len(message) + len(character) + 5 > 2000:
+
+				# Send these characters first
+				await ctx.send(message)
+				message = ""
+
+			message += ", " + character 
+
 		# Send the embed stats
-		await ctx.send(', '.join(characters))
+		await ctx.send(message)
 
 	# @alert_list.error
 	# async def alert_list(self, ctx, error):
