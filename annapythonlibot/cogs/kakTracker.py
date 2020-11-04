@@ -126,7 +126,11 @@ class TrackCog(commands.Cog, name="Tracking"):
 				kakera_value = kakera_gold_key.group(1)
 
 				# There are always name in the footer if it was a authentic gold key rolled
-				name = message.embeds[0].to_dict()['footer']['text'][len('Belongs to '):]
+				# name = message.embeds[0].to_dict()['footer']['text'][len('Belongs to '):]
+				# Fails at "LEFT :warning: Belongs to Larypie"
+
+				# Roller is always the one that married the character
+				name = self.data['last_user']
 
 				await message.channel.send(name + " you got: " + str(kakera_value))
 
