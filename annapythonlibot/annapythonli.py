@@ -9,8 +9,6 @@ from discord.ext import commands
 import timeit
 # Time
 import time
-# Subprocess
-import subprocess
 
 
 # The bot
@@ -21,7 +19,7 @@ bot = commands.Bot(
 )
 
 # Cogs
-cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics', 'cogs.waifureader', 'cogs.cat']
+cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics', 'cogs.waifureader', 'cogs.cat', 'cogs.admin']
 
 # Load the cogs
 if __name__ == '__main__':
@@ -76,69 +74,7 @@ async def _xload(ctx, xload, ext):
 
 	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
 
-def git_pull(result):
-	bash = "git pull"
-	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
-	result['output'], result['error'] = process.communicate()
-
-# Perform a git pull
-@bot.command(
-	name="git_pull",
-	aliases=['pull'],
-	hidden=True
-)
-@commands.check(is_admin)
-async def _git_pull(ctx):
-	confirmation = await ctx.send("Pulling")
-
-	result = {'output': '', 'error': ''}
-
-	time = timeit.timeit(lambda: [git_pull(result)], number=1)
-
-	res = result[(['error', 'output'][result['error'] == None])].decode()
-
-	await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
-
-# Change presence
-@bot.command(
-	name="presence",
-	aliases=['press'],
-	hidden=True
-)
-@commands.check(is_admin)
-async def _presence(ctx, presence_type, *names):
-	confirmation = await ctx.send("Presenceing...")
-
-	# Join the input string
-	name = ' '.join(names)
-
-	if name == '':
-		await confirmation.edit(content="`anna li press int *string`")
-		raise ValueError("Empty name")
-
-	# Set activity
-	activities = [
-		('Plying', 		discord.Game(name=name)),
-		('Streaming', 	discord.Streaming(name=name, url='https://www.twitch.tv/larypie')),
-		('Listening', 	discord.Activity(type=discord.ActivityType.listening, name=name)),
-		('Watching', 	discord.Activity(type=discord.ActivityType.watching, name=name))
-	]
-
-	try:
-		activity = activities[int(presence_type)]
-	except:
-		acts = '\n'.join([str(i) + " = " + activities[i][0] for i in range(0, len(activities))])
-		await confirmation.edit(content="```{}```".format(acts))
-		raise ValueError("Out of bounds activity")
-
-	# Set presence
-	await bot.change_presence(activity=activity[1])
-
-	await confirmation.edit(content="Presence set to: `{} {}`".format(activity[0], name))
-
 @_reload.error
-@_git_pull.error
-@_presence.error
 @_xload.error
 async def _admin_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):

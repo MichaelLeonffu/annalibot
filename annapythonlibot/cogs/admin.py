@@ -1,0 +1,141 @@
+# admin.py
+
+# Admin commands and meta commands
+
+
+# Config
+import config.config as config
+# This is the discord
+import discord
+from discord.ext import commands
+# Subprocess
+import subprocess
+# Timeit
+import timeit
+
+
+# Admin check
+def is_admin(ctx):
+	return ctx.message.author.id == config.ADMIN_ID
+
+def git_pull(result):
+	bash = "git pull"
+	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
+	result['output'], result['error'] = process.communicate()
+
+
+# Our Admin cog
+class AdminCog(commands.Cog, name="Admin"):
+	"""AdminCog"""
+
+	# Allows us to have bot defined and passed in
+	def __init__(self, bot):
+		self.bot = bot
+
+	# Perform a git pull
+	@commands.command(
+		name="git_pull",
+		aliases=['pull'],
+		hidden=True
+	)
+	@commands.check(is_admin)
+	async def _git_pull(self, ctx):
+		confirmation = await ctx.send("Pulling")
+
+		result = {'output': '', 'error': ''}
+
+		time = timeit.timeit(lambda: [git_pull(result)], number=1)
+
+		res = result[(['error', 'output'][result['error'] == None])].decode()
+
+		await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
+
+	# Change activity
+	@commands.command(
+		name="activity",
+		aliases=['act'],
+		hidden=True
+	)
+	@commands.check(is_admin)
+	async def _activity(self, ctx, presence_type, *names):
+		confirmation = await ctx.send("Activity...")
+
+		# Join the input string
+		name = ' '.join(names)
+
+		if name == '':
+			await confirmation.edit(content="`anna li activity int *string`")
+			raise ValueError("Empty name")
+
+		# Set activity
+		activities = [
+			('Plying', 		discord.Game(name=name)),
+			('Streaming', 	discord.Streaming(name=name, url='https://www.twitch.tv/larypie')),
+			('Listening', 	discord.Activity(type=discord.ActivityType.listening, name=name)),
+			('Watching', 	discord.Activity(type=discord.ActivityType.watching, name=name))
+		]
+
+		try:
+			activity = activities[int(presence_type)]
+		except:
+			acts = '\n'.join([str(i) + " = " + activities[i][0] for i in range(0, len(activities))])
+			await confirmation.edit(content="```{}```".format(acts))
+			raise ValueError("Out of bounds activity")
+
+		# Set activity
+		await self.bot.change_presence(activity=activity[1])
+
+		await confirmation.edit(content="Activity set to: `{} {}`".format(activity[0], name))
+
+	# Change status
+	@commands.command(
+		name="status",
+		# aliases=['status'],
+		hidden=True
+	)
+	@commands.check(is_admin)
+	async def _status(self, ctx, status_type):
+		confirmation = await ctx.send("Status...")
+
+		try:
+			status_type = int(status_type)
+		except ValueError:
+			await confirmation.edit(content="`anna li status int`")
+			raise ValueError("Empty name")
+
+		# Set status
+		statuses = [
+			('online', 		discord.Status.online),
+			('idle', 		discord.Status.idle),
+			('dnd', 		discord.Status.dnd),
+			('invisible', 	discord.Status.invisible),
+			('offline', 	discord.Status.offline)
+		]
+
+		try:
+			status = statuses[status_type]
+		except:
+			stats = '\n'.join([str(i) + " = " + statuses[i][0] for i in range(0, len(statuses))])
+			await confirmation.edit(content="```{}```".format(stats))
+			raise ValueError("Out of bounds activity")
+
+		# Set presence
+		await self.bot.change_presence(status=status[1])
+
+		await confirmation.edit(content="Status set to: `{}`".format(status[0]))
+
+	@_git_pull.error
+	@_activity.error
+	@_status.error
+	async def _admin_error(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			await ctx.send("B-Baka!!! ><")
+		elif isinstance(error, ValueError):
+			print(error)
+		else:
+			print(error)
+
+
+# Give the cog to the bot
+def setup(bot):
+	bot.add_cog(AdminCog(bot))
