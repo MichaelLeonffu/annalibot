@@ -50,21 +50,26 @@ class AdminCog(commands.Cog, name="Admin"):
 
 		await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
 
-	# Change activity
+	# Change presence
 	@commands.command(
-		name="activity",
-		aliases=['act'],
+		name="presence",
+		aliases=['press'],
 		hidden=True
 	)
 	@commands.check(is_admin)
-	async def _activity(self, ctx, presence_type, *names):
-		confirmation = await ctx.send("Activity...")
+	async def _presence(self, ctx, status_type, activity_type, *names):
+		confirmation = await ctx.send("Presence...")
 
 		# Join the input string
 		name = ' '.join(names)
 
-		if name == '':
-			await confirmation.edit(content="`anna li activity int *string`")
+		try:
+			status_type = int(status_type)
+			activity_type = int(activity_type)
+			if name == '':
+				raise ValueError
+		except ValueError:
+			await confirmation.edit(content="`anna li presence int int *name`")
 			raise ValueError("Empty name")
 
 		# Set activity
@@ -74,34 +79,6 @@ class AdminCog(commands.Cog, name="Admin"):
 			('Listening', 	discord.Activity(type=discord.ActivityType.listening, name=name)),
 			('Watching', 	discord.Activity(type=discord.ActivityType.watching, name=name))
 		]
-
-		try:
-			activity = activities[int(presence_type)]
-		except:
-			acts = '\n'.join([str(i) + " = " + activities[i][0] for i in range(0, len(activities))])
-			await confirmation.edit(content="```{}```".format(acts))
-			raise ValueError("Out of bounds activity")
-
-		# Set activity
-		await self.bot.change_presence(activity=activity[1])
-
-		await confirmation.edit(content="Activity set to: `{} {}`".format(activity[0], name))
-
-	# Change status
-	@commands.command(
-		name="status",
-		# aliases=['status'],
-		hidden=True
-	)
-	@commands.check(is_admin)
-	async def _status(self, ctx, status_type):
-		confirmation = await ctx.send("Status...")
-
-		try:
-			status_type = int(status_type)
-		except ValueError:
-			await confirmation.edit(content="`anna li status int`")
-			raise ValueError("Empty name")
 
 		# Set status
 		statuses = [
@@ -113,20 +90,21 @@ class AdminCog(commands.Cog, name="Admin"):
 		]
 
 		try:
+			activity = activities[activity_type]
 			status = statuses[status_type]
 		except:
+			acts = '\n'.join([str(i) + " = " + activities[i][0] for i in range(0, len(activities))])
 			stats = '\n'.join([str(i) + " = " + statuses[i][0] for i in range(0, len(statuses))])
-			await confirmation.edit(content="```{}```".format(stats))
-			raise ValueError("Out of bounds activity")
+			await confirmation.edit(content="```{}```".format(acts+"\n"+stats))
+			raise ValueError("Out of bounds presence")
 
 		# Set presence
-		await self.bot.change_presence(status=status[1])
+		await self.bot.change_presence(status=status[1], activity=activity[1])
 
-		await confirmation.edit(content="Status set to: `{}`".format(status[0]))
+		await confirmation.edit(content="Presence set to `{}: {} {}`".format(status[0], activity[0], name))
 
 	@_git_pull.error
-	@_activity.error
-	@_status.error
+	@_presence.error
 	async def _admin_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send("B-Baka!!! ><")
