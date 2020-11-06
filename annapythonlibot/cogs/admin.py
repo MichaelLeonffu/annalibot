@@ -23,6 +23,10 @@ def git_pull(result):
 	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
 	result['output'], result['error'] = process.communicate()
 
+def free(result):
+	bash = "free -m"
+	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
+	result['output'], result['error'] = process.communicate()
 
 # Our Admin cog
 class AdminCog(commands.Cog, name="Admin"):
@@ -40,11 +44,29 @@ class AdminCog(commands.Cog, name="Admin"):
 	)
 	@commands.check(is_admin)
 	async def _git_pull(self, ctx):
-		confirmation = await ctx.send("Pulling")
+		confirmation = await ctx.send("Pulling...")
 
 		result = {'output': '', 'error': ''}
 
 		time = timeit.timeit(lambda: [git_pull(result)], number=1)
+
+		res = result[(['error', 'output'][result['error'] == None])].decode()
+
+		await confirmation.edit(content="```bash\n{}```Done! ({:.4f}s)".format(res, time))
+
+	# Perform free check
+	@commands.command(
+		name="free",
+		# aliases=['free'],
+		hidden=True
+	)
+	@commands.check(is_admin)
+	async def _free(self, ctx):
+		confirmation = await ctx.send("Free...")
+
+		result = {'output': '', 'error': ''}
+
+		time = timeit.timeit(lambda: [free(result)], number=1)
 
 		res = result[(['error', 'output'][result['error'] == None])].decode()
 
@@ -104,14 +126,15 @@ class AdminCog(commands.Cog, name="Admin"):
 		await confirmation.edit(content="Presence set to `{}: {} {}`".format(status[0], activity[0], name))
 
 	@_git_pull.error
+	@_free.error
 	@_presence.error
 	async def _admin_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			await ctx.send("B-Baka!!! ><")
 		elif isinstance(error, ValueError):
-			print(error)
+			await ctx.send("ValueError" + str(error))
 		else:
-			print(error)
+			await ctx.send(error)
 
 
 # Give the cog to the bot
