@@ -47,7 +47,10 @@ def is_admin(ctx):
 async def _reload(ctx):
 	confirmation = await ctx.send("Reloading")
 
-	time = timeit.timeit(lambda: [bot.reload_extension(cog) for cog in cogs], number=1)
+	try:
+		time = timeit.timeit(lambda: [bot.reload_extension(cog) for cog in cogs], number=1)
+	except Exception as err:
+		return await confirmation.edit(content="Failed! " + str(err))
 
 	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
 
@@ -67,15 +70,26 @@ async def _xload(ctx, xload, ext):
 	elif xload == "reload":
 		time = timeit.timeit(lambda: [bot.reload_extension(ext)], number=1)
 	elif xload == "list":
-		await confirmation.edit(content="`{}`".format(str(bot.cogs)))
+		await confirmation.edit(content="`{}`".format("\n".join([cog for cog in bot.cogs])))
 	else:
 		await confirmation.edit(content="`xload ([,un,re]load) cogs.name`")
 		raise ValueError("Bad ([,un,re]load)")
 
 	await confirmation.edit(content="Done! ({:.4f}s)".format(time))
 
+# Close
+@bot.command(
+	name="close",
+	hidden=True
+)
+@commands.check(is_admin)
+async def _close(ctx):
+	await ctx.send("Closing... 😢")
+	await bot.close()
+
 @_reload.error
 @_xload.error
+@_close.error
 async def _admin_error(ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await ctx.send("B-Baka!!! ><")
@@ -96,7 +110,6 @@ time_start = time.time()
 	help='(More like the amount of time Anna Li bot has not been updated',
 	usage='%time')
 async def _time(ctx):
-	global time_start
 	await ctx.send(time_pretty(time.time() - time_start))
 
 
