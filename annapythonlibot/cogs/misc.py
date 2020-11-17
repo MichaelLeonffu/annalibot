@@ -17,14 +17,31 @@ import datetime
 
 
 # Our simple cog
-class MiscCog(commands.Cog, name="Misc Commands"):
+class MiscCog(commands.Cog, name="Misc"):
 	"""MiscCog"""
 
 	# Allows us to have bot defined and passed in
 	def __init__(self, bot):
 		self.bot = bot
 
+		# Placed here to run code only once
+		# Generate the morse code pairs dot = . dash = -
+		code = ".- -... -.-. -.. . ..-. --. .... .. .--- -.- .-.. -- \
+		-. --- .--. --.- .-. ... - ..- ...- .-- -..- -.-- --.. \
+		----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----. \
+		--..-- ..--.."
 
+		alphanum = "abcdefghijklmnopqrstuvwxyz0123456789,?"
+
+		# Pair the values
+		pairs = [(c, alphanum[i]) for i, c in enumerate(code.split())] +\
+				[(alphanum[i], c) for i, c in enumerate(code.split())]
+
+		# Generate the dicts/LUT
+		self.morse_lut = {pair[0]: pair[1] for pair in pairs}
+
+		# Add spaces
+		self.morse_lut.update({" ": "\\", "\\": " "})
 
 	# @commands.command(
 	# 	name='math',
@@ -145,12 +162,42 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 		await ctx.message.delete()
 		await ctx.send(phrase)
 
+	@commands.command(
+		name='morse_code',
+		aliases=['morse'],
+		brief='Anna Li translates to/from morse code',
+		description='This way you can beep boop',
+		help='Hopefully it is not a long message')
+	async def _morse_code(self, ctx, *, phrase):
+
+		# For all the letters
+		phrase = phrase.lower()
+		space = " "
+
+		# Check if it is all morse coded (".- \")
+		if len(set(phrase) - {'.', ' ', '\\', '-'}) == 0:
+			# Split makes it work by multi characters vs single ones
+			phrase = phrase.split()
+			space = ""
+
+		morse = ""
+
+		# Convert to mose code
+		for char in phrase:
+			if char in self.morse_lut:
+				morse += self.morse_lut[char] + space
+			else:
+				morse += char
+
+		await ctx.send("`{}`".format(morse))
+
 	@_mypic.error
 	@_myourpic.error
 	@_add.error
 	@_mul.error
 	@_div.error
 	@_say.error
+	@_morse_code.error
 	async def _any_error(self, ctx, error):
 		await ctx.send(error)
 
@@ -180,10 +227,6 @@ class MiscCog(commands.Cog, name="Misc Commands"):
 			await message.add_reaction('👻')
 			await asyncio.sleep(1)
 			await message.remove_reaction('👻', self.bot.user)
-
-		# Halloween update!
-		if datetime.datetime.now().strftime("%d/%m") == "31/10" and random.random() < 0.5:
-			await message.add_reaction(random.choice(['👻', '🎃', '🍬', '🍭']))
 
 
 # Give the cog to the bot
