@@ -29,9 +29,9 @@ class MiscCog(commands.Cog, name="Misc"):
 		code = ".- -... -.-. -.. . ..-. --. .... .. .--- -.- .-.. -- \
 		-. --- .--. --.- .-. ... - ..- ...- .-- -..- -.-- --.. \
 		----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----. \
-		--..-- ..--.."
+		--..-- ..--.. -.-.--"
 
-		alphanum = "abcdefghijklmnopqrstuvwxyz0123456789,?"
+		alphanum = "abcdefghijklmnopqrstuvwxyz0123456789,?!"
 
 		# Pair the values
 		pairs = [(c, alphanum[i]) for i, c in enumerate(code.split())] +\
@@ -101,7 +101,6 @@ class MiscCog(commands.Cog, name="Misc"):
 	async def _mypic(self, ctx, size=1024):
 		await ctx.send(ctx.author.avatar_url_as(size=size))
 
-
 	@commands.command(
 		name='yourpic',
 		# aliases=['yourpic'],
@@ -110,7 +109,6 @@ class MiscCog(commands.Cog, name="Misc"):
 		help='Lets get that for you')
 	async def _myourpic(self, ctx, mention, size=1024):
 		await ctx.send((await commands.MemberConverter().convert(ctx, mention)).avatar_url_as(size=size))
-
 
 	@commands.command(
 		name='add',
@@ -121,7 +119,6 @@ class MiscCog(commands.Cog, name="Misc"):
 	async def _add(self, ctx, *nums: float):
 		if len(nums) < 1: await ctx.send("Requires at least one number")
 		await ctx.send(sum(nums))
-
 
 	@commands.command(
 		name='mul',
@@ -135,7 +132,6 @@ class MiscCog(commands.Cog, name="Misc"):
 		for num in nums:
 			total *= num
 		await ctx.send(total)
-
 
 	@commands.command(
 		name='div',
@@ -227,6 +223,10 @@ class MiscCog(commands.Cog, name="Misc"):
 			await message.add_reaction('👻')
 			await asyncio.sleep(1)
 			await message.remove_reaction('👻', self.bot.user)
+
+		# Detect if message is morse (only applies to messages with length > 3)
+		if len(message.content) > 5 and len(set(message.content) - {'.', ' ', '\\', '-'}) == 0:
+			await self._morse_code(message.channel, phrase=message.content)
 
 
 # Give the cog to the bot
