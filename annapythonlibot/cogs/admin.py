@@ -138,7 +138,7 @@ class AdminCog(commands.Cog, name="Admin"):
 
 # Delete Message check
 async def del_message(ctx):
-	if ctx.prefix == "&&":
+	if ctx.prefix == config.PREFIX*2:
 		await ctx.message.delete(delay=1)
 	return True
 
