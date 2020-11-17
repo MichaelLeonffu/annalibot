@@ -13,17 +13,13 @@ import time
 
 # The bot
 bot = commands.Bot(
-	command_prefix	= ('%', 'a!', 'annali!', 'annali ', 'annali', 'anna li ', 'anna li'),
-	activity		= discord.Game(name="with fire"),
+	command_prefix	= (config.PREFIX*2, config.PREFIX) + config.PREFIXES,
 	case_insensitive= True
 )
 
-# Cogs
-cogs = ['cogs.kakTracker', 'cogs.misc', 'cogs.testing', 'cogs.voice', 'cogs.metrics', 'cogs.waifureader', 'cogs.cat', 'cogs.admin']
-
 # Load the cogs
 if __name__ == '__main__':
-	for cog in cogs:
+	for cog in config.COGS_LIST:
 		bot.load_extension(cog)
 
 		# Add a try catch to this later sometime?
@@ -48,7 +44,7 @@ async def _reload(ctx):
 	confirmation = await ctx.send("Reloading")
 
 	try:
-		time = timeit.timeit(lambda: [bot.reload_extension(cog) for cog in cogs], number=1)
+		time = timeit.timeit(lambda: [bot.reload_extension(cog) for cog in config.COGS_LIST], number=1)
 	except Exception as err:
 		return await confirmation.edit(content="Failed! " + str(err))
 
