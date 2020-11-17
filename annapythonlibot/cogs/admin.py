@@ -136,7 +136,17 @@ class AdminCog(commands.Cog, name="Admin"):
 		else:
 			await ctx.send(error)
 
+# Delete Message check
+async def del_message(ctx):
+	if ctx.prefix == "&&":
+		await ctx.message.delete(delay=1)
+	return True
 
 # Give the cog to the bot
 def setup(bot):
 	bot.add_cog(AdminCog(bot))
+	bot.add_check(del_message, call_once=False)
+
+# Remove the check
+def teardown(bot):
+	bot.remove_check(del_message, call_once=False)
