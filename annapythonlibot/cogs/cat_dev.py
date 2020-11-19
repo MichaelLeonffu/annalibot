@@ -89,8 +89,11 @@ class CatUpdateCog(commands.Cog, name="Cat_Update"):
 		if result != True:
 			return await ctx.send("⚠️Failed pixel check: " + result)
 
-		# Save the ct
-		file = await attachment.save(path)
+		# Make the cat smaller
+		im_smaller_cat = paint.bbox_crop_from_bytes(cat_bytes)
+
+		# Save cat
+		im_smaller_cat.save(path)
 
 		# Tell user cat was saved
 		await ctx.send("File uploaded: **{}**".format(filename))
@@ -129,7 +132,7 @@ class CatUpdateCog(commands.Cog, name="Cat_Update"):
 		# Draw the cat
 		im_cat = paint.compile_cat(cat_head_file, cat_body_file, cat_tail_file, bg_rgb)
 
-		# Temp file to save cat
+		# Bytes buffer
 		cat_bytes = io.BytesIO()
 		im_cat.save(cat_bytes, format="png")
 

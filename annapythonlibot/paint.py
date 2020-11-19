@@ -46,6 +46,15 @@ def has_align_pixel(fp_cat, cat_part):
 
 	return True
 
+# Make the image smaller (remove extra space)
+def bbox_crop_from_bytes(cat_part_bytes):
+
+	# Open as an image
+	im_cat_part = Image.open(cat_part_bytes)
+
+	# Crop by bbox (remove later for more speed)
+	return im_cat_part.crop(box=im_cat_part.getbbox())
+
 # Compiles a cat from a head body and tail
 def compile_cat(file_head, file_body, file_tail, bg_color=(240, 170, 240, 255)):
 
@@ -61,11 +70,6 @@ def compile_cat(file_head, file_body, file_tail, bg_color=(240, 170, 240, 255)):
 	sum_width = im_head.width + im_body.width + im_tail.width
 	sum_height = im_head.height + im_body.height + im_tail.height
 	im_cat = Image.new("RGBA", (sum_width, sum_height), (0, 0, 0, 0))
-
-	# Crop by bbox (remove later for more speed)
-	im_tail = im_tail.crop(box=im_tail.getbbox())
-	im_body = im_body.crop(box=im_body.getbbox())
-	im_head = im_head.crop(box=im_head.getbbox())
 
 	try: tail_body_px = find_align_pixel(im_tail, BODY_TAIL_APX)
 	except ValueError: raise ValueError("tail_body missing alignment pixel: " + str(BODY_TAIL_APX))
