@@ -66,11 +66,6 @@ def compile_cat(file_head, file_body, file_tail, bg_color=(240, 170, 240, 255)):
 	im_body = Image.open(file_body)
 	im_tail = Image.open(file_tail)
 
-	# Generate a canvas to lay images on (should be exes height and width)
-	sum_width = im_head.width + im_body.width + im_tail.width
-	sum_height = im_head.height + im_body.height + im_tail.height
-	im_cat = Image.new("RGBA", (sum_width, sum_height), (0, 0, 0, 0))
-
 	try: tail_body_px = find_align_pixel(im_tail, BODY_TAIL_APX)
 	except ValueError: raise ValueError("tail_body missing alignment pixel: " + str(BODY_TAIL_APX))
 	try: body_tail_px = find_align_pixel(im_body, BODY_TAIL_APX)
@@ -81,25 +76,59 @@ def compile_cat(file_head, file_body, file_tail, bg_color=(240, 170, 240, 255)):
 	except ValueError: raise ValueError("head_body missing alignment pixel: " + str(HEAD_BODY_APX))
 
 	# Remove the alignment pixels with black
-	im_tail.putpixel(tail_body_px, (0, 0, 0, 255))
-	im_body.putpixel(body_tail_px, (0, 0, 0, 255))
-	im_body.putpixel(body_head_px, (0, 0, 0, 255))
-	im_head.putpixel(head_body_px, (0, 0, 0, 255))
+	# im_tail.putpixel(tail_body_px, (0, 0, 0, 255))
+	# im_body.putpixel(body_tail_px, (0, 0, 0, 255))
+	# im_body.putpixel(body_head_px, (0, 0, 0, 255))
+	# im_head.putpixel(head_body_px, (0, 0, 0, 255))
 
-	# So that pasting doesn't go out of bounds
-	canvas_offset = (im_cat.width//3, im_cat.height//3)
-	# canvas_offset = (0, 0)
+	# With top left pixel
+	im_tail.putpixel(tail_body_px, im_tail.getpixel((tail_body_px[0]+1, tail_body_px[1]+1)))
+	im_body.putpixel(body_tail_px, im_body.getpixel((body_tail_px[0]+1, body_tail_px[1]+1)))
+	im_body.putpixel(body_head_px, im_body.getpixel((body_head_px[0]+1, body_head_px[1]+1)))
+	im_head.putpixel(head_body_px, im_head.getpixel((head_body_px[0]+1, head_body_px[1]+1)))
 
-	tail_box = (body_tail_px[0] - tail_body_px[0] + canvas_offset[0], body_tail_px[1] - tail_body_px[1] + canvas_offset[1])
-	body_box = (canvas_offset[0], canvas_offset[1])
-	head_box = (body_head_px[0] - head_body_px[0] + canvas_offset[0], body_head_px[1] - head_body_px[1] + canvas_offset[1])
+	# Find the exact canvas size and where each box is (top left most pixel)
+
+	def align_parts(head_len, head_p, body_len, body_p1, body_p2, tail_len, tail_p):
+		# Use body as the referance point and shift head and tail to align with pixel
+		# x_len = length, x_p = point 1D, x_d = delta, p1 = body_head, p2 = body_tail
+		head_d = body_p1 - head_p
+		tail_d = body_p2 - tail_p
+
+		# Find the new locations of the x1 and x2... (can be negative)
+		x1 = head_d
+		x2 = x1 + head_len
+
+		z1 = tail_d
+		z2 = z1 + tail_len
+
+		# Find the offset (values that go negative)
+		# Since we anchor on body it will be 0 at the lowest value
+		offset = -min(x1, 0, z1)
+
+		# Find the biggest size
+		maximum = max(x2, body_len, z2)
+
+		# Return the cords max_value head_align body_align tail_align
+		return (offset+maximum, offset+x1, offset, offset+z1)
+
+	# Get offsets
+	offsets_x = align_parts(im_head.width, head_body_px[0], im_body.width, body_head_px[0], body_tail_px[0], im_tail.width, tail_body_px[0])
+	offsets_y = align_parts(im_head.height, head_body_px[1], im_body.height, body_head_px[1], body_tail_px[1], im_tail.height, tail_body_px[1])
+
+	# Generate a canvas to lay images on
+	im_cat = Image.new("RGBA", (offsets_x[0], offsets_y[0]), (0, 0, 0, 0))
+
+	head_box = (offsets_x[1], offsets_y[1])
+	body_box = (offsets_x[2], offsets_y[2])
+	tail_box = (offsets_x[3], offsets_y[3])
 
 	#Image.alpha_composite(im, dest=0, 0, source=0, 0)
 	im_cat.paste(im_tail, box=tail_box, mask=im_tail)
 	im_cat.paste(im_body, box=body_box, mask=im_body)
 	im_cat.paste(im_head, box=head_box, mask=im_head)
 
-	# Bbox it Crop it
+	# Bbox it Crop it (remove in the future since all inputs are bboxed already)
 	im_cat = im_cat.crop(box=im_cat.getbbox())
 
 	# Align it Center it
