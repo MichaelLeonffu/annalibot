@@ -51,21 +51,26 @@ class SeasonalCog(commands.Cog, name="Seasonal"):
 
 		date = datetime.datetime.now()
 
-		# Halloween update!
+		# Halloween!
 		if date.strftime("%d/%m") == "31/10"\
 			and random.random() < 0.5:
 			await message.add_reaction(random.choice(['👻', '🎃', '🍬', '🍭']))
 			
-		# Thanksgiving update! On the 4th thrusday of november meaning thrusday on 22-28 inclusive
+		# Thanksgiving! On the 4th thrusday of november meaning thrusday on 22-28 inclusive
 		if date.strftime("%a/%m") == "Thu/11"\
 			and int(date.strftime("%d")) in range(22,29)\
 			and random.random() < 0.5:
 			await message.add_reaction(random.choice(['🦃', '🍂', '🌽', '🥖']))
 
-		# Christmas update!
+		# Christmas!
 		if date.strftime("%d/%m") == "25/12"\
 			and random.random() < 0.5:
 			await message.add_reaction(random.choice(['❄️', '⛄', '☃️', '🎅', '🎁', '🎄']))
+
+		# New years!
+		if date.strftime("%d/%m") == "01/01"\
+			and random.random() < 0.5:
+			await message.add_reaction(random.choice(['🍺', '🍻', '🥂🍷', '🥃', '🍸', '🍾', '🎊', '🎉', '🎆']))
 
 		# On random chance add the emote
 		if random.random() < 0.0025:
