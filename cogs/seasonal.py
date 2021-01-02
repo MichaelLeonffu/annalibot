@@ -22,14 +22,14 @@ import random
 # AsyncIo
 import asyncio
 
-SEASONAL_REACT_RATE = 0.1
-
 def utc_to_local(utc_dt):
 	return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
 
 # Our seasonal cog
 class SeasonalCog(commands.Cog, name="Seasonal"):
 	"""SeasonalCog"""
+
+	SEASONAL_REACT_RATE = 0.1
 
 	# Allows us to have bot defined and passed in
 	def __init__(self, bot):
