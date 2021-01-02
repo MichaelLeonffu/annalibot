@@ -22,6 +22,7 @@ import random
 # AsyncIo
 import asyncio
 
+SEASONAL_REACT_RATE = 0.1
 
 def utc_to_local(utc_dt):
 	return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
@@ -53,23 +54,23 @@ class SeasonalCog(commands.Cog, name="Seasonal"):
 
 		# Halloween!
 		if date.strftime("%d/%m") == "31/10"\
-			and random.random() < 0.5:
+			and random.random() < SEASONAL_REACT_RATE:
 			await message.add_reaction(random.choice(['👻', '🎃', '🍬', '🍭']))
 			
 		# Thanksgiving! On the 4th thrusday of november meaning thrusday on 22-28 inclusive
 		if date.strftime("%a/%m") == "Thu/11"\
 			and int(date.strftime("%d")) in range(22,29)\
-			and random.random() < 0.5:
+			and random.random() < SEASONAL_REACT_RATE:
 			await message.add_reaction(random.choice(['🦃', '🍂', '🌽', '🥖']))
 
 		# Christmas!
 		if date.strftime("%d/%m") == "25/12"\
-			and random.random() < 0.5:
+			and random.random() < SEASONAL_REACT_RATE:
 			await message.add_reaction(random.choice(['❄️', '⛄', '☃️', '🎅', '🎁', '🎄']))
 
 		# New years!
 		if date.strftime("%d/%m") == "01/01"\
-			and random.random() < 0.5:
+			and random.random() < SEASONAL_REACT_RATE:
 			await message.add_reaction(random.choice(['🍺', '🍻', '🥂🍷', '🥃', '🍸', '🍾', '🎊', '🎉', '🎆']))
 
 		# On random chance add the emote
