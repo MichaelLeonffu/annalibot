@@ -367,7 +367,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			embed.add_field(
 				# name="`" + "{:25}{:>10}{:>10,}".format(name, "Count:" + str(kakera_count), value) + "`",
 				# value="Rolled: " + str(rolls) + '\n' + "Claims: " + str(claims),
-				name="`" + "{:15}{:>10}{:>8,}".format(name, "Count:" + str(kakera_count), value) + "`",
+				name="`" + "{:15} Count: {:>4} {:>8,}".format(name, str(kakera_count), value) + "`",
 				value="R: " + str(rolls) + '\n' + "C: " + str(claims),
 				inline=False
 			)
@@ -455,7 +455,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 			# Print their rolls and claims
 			embed.add_field(
 				name= name,
-				value="`{:10}{:>8,}`".format("Count:" + str(count), value),
+				value="`{:10}{:>13,}`".format("Count:" + str(count), value),
 				inline=False
 			)
 
