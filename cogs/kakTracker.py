@@ -107,15 +107,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# Check if the message has a embed in it (checking for gold +kakeras)
 		if len(message.embeds) == 1:
 
-			# Also check if this character is in the 10 key alert and who wants that alert
-			result = self.db.alert10.find_one({
-				'character': message.embeds[0].to_dict()['author']['name'].lower()
-			})
-
-			# If there is a result then mention the user
-			if result != None:
-				await message.channel.send("10 Key: {}".format(self.bot.get_user(result['owner']).mention))
-
 			# Check if that message has a kakera gain
 			kakera_gold_key = re.search(r'\*\*\+(\d+)\*\*<:kakera:469835869059153940>', ''.join(message.embeds[0].to_dict()['description']))
 
@@ -210,6 +201,15 @@ class TrackCog(commands.Cog, name="Tracking"):
 			if message.reactions[0].count != 1:
 				return
 
+			# Also check if this character is in the 10 key alert and who wants that alert
+			result = self.db.alert10.find_one({
+				'character': message.embeds[0].to_dict()['author']['name'].lower()
+			})
+
+			# If there is a result then mention the user
+			if result != None:
+				await message.channel.send("10 Key {}: {}".format(self.MY_KAKERA_EMOTES[kakera_reaction.group(1)], self.bot.get_user(result['owner']).mention))
+
 			# Who rolled last
 			roller = self.data['last_user']
 
@@ -225,9 +225,6 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# Upload data to server
 			self.db.kakera_rolled.insert_one(doc)
-
-			print("Added")
-			return
 
 
 	@commands.command(
