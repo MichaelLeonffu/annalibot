@@ -13,7 +13,7 @@ import contextvars as ctxvar
 
 
 # Our test cog
-class TestCog(commands.Cog, name="Test Commands"):
+class TestCog(commands.Cog, name="testing"):
 	"""TestCog"""
 
 	# Allows us to have bot defined and passed in
@@ -43,6 +43,27 @@ class TestCog(commands.Cog, name="Test Commands"):
 		# if len(message.mentions) == 1 and self.bot.user.id == message.mentions[0].id:
 		if message.content == ("<@!%s>" % self.bot.user.id):
 			await message.channel.send("Wah? use %help")
+
+	# Print out a cached message
+	@commands.command(
+		name='repeat',
+		aliases=['peat'],
+		brief='Repeats a message to consol',
+		description='Helps testing and debugging',
+		help='repeat [message_id]',
+		usage='lol what')
+	async def _repeat(self, ctx, message_id):
+
+		# Find the message
+		message = await commands.MessageConverter().convert(ctx, message_id)
+
+		await ctx.send("✅ Message found!")
+
+		print("\n\nmessage", message)
+
+		print("\n\nembed", message.embeds[0].to_dict())
+
+		print("\n\nreacts", message.reactions)
 
 	@commands.command(
 		name='embed',
