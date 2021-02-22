@@ -44,15 +44,25 @@ class TrackCog(commands.Cog, name="Tracking"):
 		self.ROLL_COMMANDS = ["$" + a + b for a in "whm" for b in list("abg") + ['']]
 
 		self.KAKERA_FULL_NAME = [
-			'<:kakeraP:609264226342797333>',
-			'<:kakera:469791929106956298>',
-			'<:kakeraT:609264247645536276>',
-			'<:kakeraG:609264237780402228>',
-			'<:kakeraY:605124267574558720>',
-			'<:kakeraO:605124259018178560>',
-			'<:kakeraR:605124263917256836>',
-			'<:kakeraW:608193418698686465>'
+			'<:kakeraP:609264156347990016>',
+			'<:kakera:469835869059153940>',
+			'<:kakeraT:609264180851376132>',
+			'<:kakeraG:609264166381027329>',
+			'<:kakeraY:605112931168026629>',
+			'<:kakeraO:605112954391887888>',
+			'<:kakeraR:605112980295647242>',
+			'<:kakeraW:608192076286263297>'
 		]
+
+		# old values (Before Feb 22, 2021)
+		'<:kakeraP:609264226342797333>'
+		'<:kakera:469791929106956298>'
+		'<:kakeraT:609264247645536276>'
+		'<:kakeraG:609264237780402228>'
+		'<:kakeraY:605124267574558720>'
+		'<:kakeraO:605124259018178560>'
+		'<:kakeraR:605124263917256836>'
+		'<:kakeraW:608193418698686465>'
 
 		self.KAKERA_NAME = ["kakera" + a for a in ['P', ''] + list("TGYORW")]
 
