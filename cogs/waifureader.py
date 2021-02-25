@@ -43,6 +43,8 @@ class WaifureaderCog(commands.Cog, name="WaifureaderCog"):
 		help='Copy and paste all of the waifus using the "$mmrak-=i-s" command.\nDiscord will prompt to make it into a file, type "\%wr"')
 	async def _waifuread(self, ctx):
 
+		return await ctx.send("deprecated use wg")
+
 		time_start = time.time()
 
 		# Read in the file attachment
@@ -161,6 +163,8 @@ class WaifureaderCog(commands.Cog, name="WaifureaderCog"):
 		description='Print out waifus',
 		help='Generates a html file for printing the waifus')
 	async def _waifuprint(self, ctx, limit=100):
+
+		return await ctx.send("deprecated use wg")
 
 		time_start = time.time()
 
@@ -311,6 +315,180 @@ class WaifureaderCog(commands.Cog, name="WaifureaderCog"):
 
 		# Completed
 		return await ctx.send("Done, " + compute_time, file=discord.File(html_buffer, filename='waifulist.html'))
+
+	@_waifuprint.error
+	async def _waifuprint_error(self, ctx, error):
+		await ctx.send(error)
+
+	@commands.command(
+		name='waifugenerate',
+		aliases=['wg'],
+		brief='Reads in waifus and writes waifus',
+		description='Reads a waifu file then writes a html',
+		help='Copy and paste all of the waifus using the "$mmk-=i-s" command.\nDiscord will prompt to make it into a file, type "\%wr"')
+	async def _waifugenerate(self, ctx, name=None):
+
+		time_start = time.time()
+
+		# Read in the file attachment
+		if len(ctx.message.attachments) != 1:
+			return await ctx.send("Wrong numebr of files")
+
+		# Find the attachment
+		attachment = ctx.message.attachments[0]
+
+		# Check if attachment is bigger than 1MB
+		if int(attachment.size) > 1048576:
+			return await ctx.send("File is too big (>1MB)")
+
+		# Read the file into a string called data and remove the white spaces
+		data = [line for line in (await attachment.read()).decode().split('\n') if line != '']
+		userid = int(ctx.message.author.id)
+
+		# Go process the file string and upload the data to the database
+
+		# Process all the data now that it is off the file
+		waifuList = []		# Array because we don't look up and all items unique
+		line = 0
+		for d in data:
+			# Character
+			line += 1
+
+			# Split the three components (strip the \n)
+			comp = re.split(' - ', d.strip())
+
+			# Note: customs don't have likes
+			if len(comp) == 2:
+				likes = '#0'
+				nameValue, pic = comp
+			else:
+				try:
+					likes, nameValue, pic = comp
+				except:
+					return await ctx.send("Bad format! around line: " + str(line))
+			# Don't worry about bad input data
+
+			# Matches the group
+			valueKa = re.search(' \d+ ka$', nameValue)
+			# Separates the " 123 ka"
+			value = valueKa.group().strip()[:-3]
+
+			# Extracts the name from the remainder
+			name = re.sub(' \d+ ka$', '', nameValue).strip()
+
+			waifuList.append(
+				{
+					'_id': name,				# Unique id per mudae
+					'owner': userid,			# The user that owns this character
+					'likes': int(likes[1:]),  	# The number of likes
+					'value': int(value),		# The value it has (kakera)
+					'pic': pic					# url for the pic of it
+				}
+			)
+
+		pprint.pprint(waifuList)
+
+		# Read from the sender
+		user = ctx.author
+		# If there is a mentions use that user
+		if len(ctx.message.mentions) >= 1:
+			user = ctx.message.mentions[0]
+
+		if name == None:
+			name = user.name
+
+		# The main structure which contains all the pics
+		html_template = """ <!DOCTYPE html>
+		<html>
+			<head>
+				<style>
+					* {{box-sizing: border-box;}}
+
+					.container {{
+						position: relative;
+						/*width: 50%;*/
+						max-width: 225px;
+					}}
+
+					.image {{
+						display: block;
+						width: 100%;
+						height: auto;
+					}}
+
+					.overlay {{
+						position: absolute; 
+						bottom: 0; 
+						background: rgb(0, 0, 0);
+						background: rgba(0, 0, 0, 0.5); /* Black see-through */
+						color: #f1f1f1; 
+						width: 100%;
+						transition: .5s ease;
+						opacity:0;
+						color: white;
+						font-size: 20px;
+						padding: 20px;
+						text-align: center;
+					}}
+
+					.container:hover .overlay {{
+						opacity: 1;
+					}}
+
+					div {{
+						float: left;
+						width: 50%;
+						height: 25%;
+					}}
+				</style>
+				<title>Waifu List</title>
+			</head>
+			<body>
+
+				<h1>{0}'s Waifu list</h1>
+				<!-- <p>This is a paragraph.</p> -->
+
+				{1}
+
+			</body>
+		</html> """
+
+
+		# Fits in the template
+		pic_html_template = '<img src="{0}" alt="{1}" style="width:225px;height:350px;">'
+
+		pic_html_template = """
+		<div class="container">
+			<img src="{0}" alt="{1}" style="width:225px;height:350px;" class="image">
+			<div class="overlay">{1} #{2}</div>
+		</div>
+		"""
+
+		# List of all the populated pic html templates
+		# pics_html = [pic_html_template.format('./pics/' + pic, pic) for pic in pics]
+		# pics_html = [pic_html_template.format(waifu['pic'], waifu['name']) for waifu  in waifu_order]
+		pics_html = [pic_html_template.format(
+			waifu['pic'], waifu['_id'], waifu['likes']) for waifu in waifuList]
+
+		# Join all the pics together and then place it in the main template
+		html_file = html_template.format(name, "".join(pics_html))
+
+		# Convert the string into bytes so it can be made into a file
+		html_bytes = bytes(html_file, 'utf8')
+
+		# From bytes we need to get it into a file like object using io.BytesIO
+		html_buffer = io.BytesIO()
+		html_buffer.write(html_bytes)
+
+		# Reset the reading to the start
+		html_buffer.seek(0)
+
+		# Report the time it took to compute this
+		time_end = time.time()
+		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
+
+		# Completed
+		return await ctx.send("Done, " + compute_time, file=discord.File(html_buffer, filename=(user.name+".html")))
 
 	@_waifuprint.error
 	async def _waifuprint_error(self, ctx, error):
