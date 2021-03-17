@@ -51,7 +51,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 			'<:kakeraY:605112931168026629>',
 			'<:kakeraO:605112954391887888>',
 			'<:kakeraR:605112980295647242>',
-			'<:kakeraW:608192076286263297>'
+			'<:kakeraW:608192076286263297>',
+			'<:kakeraL:815961697918779422>'
 		]
 
 		# old values (Before Feb 22, 2021)
@@ -64,7 +65,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		'<:kakeraR:605124263917256836>'
 		'<:kakeraW:608193418698686465>'
 
-		self.KAKERA_NAME = ["kakera" + a for a in ['P', ''] + list("TGYORW")]
+		self.KAKERA_NAME = ["kakera" + a for a in ['P', ''] + list("TGYORWL")]
 
 		self.KAKERA_EMOTES = {
 			**{self.KAKERA_FULL_NAME[i]: self.KAKERA_NAME[i] for i in range(len(self.KAKERA_NAME))},
@@ -81,7 +82,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 			"<:kakeraY:739401967406809129>",
 			"<:kakeraO:739401966911881269>",
 			"<:kakeraR:739401967280848936>",
-			"<:kakeraW:739401967364734986>"
+			"<:kakeraW:739401967364734986>",
+			"<:kakeraL:821278157965361173>"
 		]
 
 		self.MY_KAKERA_EMOTES = {
@@ -151,14 +153,14 @@ class TrackCog(commands.Cog, name="Tracking"):
 		# print(message.author, message.content, message.reactions)
 		# Mudamaid 18#0442 <:kakeraY:605124267574558720>**Larypie +406** ($k) []
 
-		kakera_collect = re.search(r'(<:kakera[PTGYORW]?:\d+>)(\(Free\) )?\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
+		kakera_collect = re.search(r'(<:kakera[PTGYORWL]?:\d+>)(\(Free\) )?\*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
 
 		# Count when the kakera was collected
 		if kakera_collect:
 
 			# Figureout which kakera it was; convert from full name to name
 			kakera_type = kakera_collect.group(1)
-			kakera_type = re.search(r'<:(kakera[PTGYORW]?):\d+>', kakera_type).group(1)
+			kakera_type = re.search(r'<:(kakera[PTGYORWL]?):\d+>', kakera_type).group(1)
 
 			name = kakera_collect.group(3)
 
@@ -202,7 +204,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 
 		# Extract out name of the kakera
-		kakera_reaction = re.search('<:(kakera[PTGYORW]?):\d+>', str(reaction))
+		kakera_reaction = re.search('<:(kakera[PTGYORWL]?):\d+>', str(reaction))
 
 		# Increment kakera count
 		if kakera_reaction:
