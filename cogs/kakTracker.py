@@ -285,7 +285,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 					'kakeraY': {'$sum':{'$cond':[{'$eq':['kakeraY','$kakera']},1,0]}},
 					'kakeraO': {'$sum':{'$cond':[{'$eq':['kakeraO','$kakera']},1,0]}},
 					'kakeraR': {'$sum':{'$cond':[{'$eq':['kakeraR','$kakera']},1,0]}},
-					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$kakera']},1,0]}}
+					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$kakera']},1,0]}},
+					'kakeraL': {'$sum':{'$cond':[{'$eq':['kakeraL','$kakera']},1,0]}}
 				}
 			}, {
 				'$lookup': {
@@ -307,7 +308,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 						'kakeraY': '$kakeraY',
 						'kakeraO': '$kakeraO',
 						'kakeraR': '$kakeraR',
-						'kakeraW': '$kakeraW'
+						'kakeraW': '$kakeraW',
+						'kakeraL': '$kakeraL'
 					},
 					'rolled': '$rolled'
 				}
@@ -328,7 +330,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 					'kakeraY': {'$sum':{'$cond':[{'$eq':['kakeraY','$rolled.kakera']},1,0]}},
 					'kakeraO': {'$sum':{'$cond':[{'$eq':['kakeraO','$rolled.kakera']},1,0]}},
 					'kakeraR': {'$sum':{'$cond':[{'$eq':['kakeraR','$rolled.kakera']},1,0]}},
-					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$rolled.kakera']},1,0]}}
+					'kakeraW': {'$sum':{'$cond':[{'$eq':['kakeraW','$rolled.kakera']},1,0]}},
+					'kakeraL': {'$sum':{'$cond':[{'$eq':['kakeraL','$rolled.kakera']},1,0]}}
 				}
 			}, {
 				'$project': {
@@ -343,7 +346,8 @@ class TrackCog(commands.Cog, name="Tracking"):
 						'kakeraY': '$kakeraY',
 						'kakeraO': '$kakeraO',
 						'kakeraR': '$kakeraR',
-						'kakeraW': '$kakeraW'
+						'kakeraW': '$kakeraW',
+						'kakeraL': '$kakeraL'
 					}
 				}
 			}, {
@@ -580,7 +584,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		help='sniped (str): user name of sniped\ndays (int): how many days back to search\nhours (int): how many hours back to search')
 	async def _snipe_table(self, ctx, sniped, days=1, hours=0):
 
-		kakera_filter = ['kakeraP', 'kakeraO', 'kakeraR', 'kakeraW']
+		kakera_filter = ['kakeraP', 'kakeraO', 'kakeraR', 'kakeraW', 'kakeraL']
 
 		time_start = time.time()
 
