@@ -19,6 +19,8 @@ import pymongo
 import pprint
 # io
 import io
+# aiohttp
+import aiohttp
 
 
 def utc_to_local(utc_dt):
@@ -35,6 +37,61 @@ class ArtCog(commands.Cog, name="Art"):
 		# Connect the mongodb client
 		self.client = pymongo.MongoClient(config.DB_URI)
 		self.db = self.client.art
+
+
+	@commands.command(
+		name='art_reply_upload',
+		aliases=['aru'],
+		brief='Upload your art using a reply!',
+		description='Then we can see all the art together',
+		help='Reply to a message that has art and use "annali aru"')
+	async def _art_reply_upload(self, ctx):
+
+		album = "bin"
+
+		# If album is too long or empty then it's wrong
+		if len(album) == 0 or len(album) > 16:
+			return await ctx.send("⚠️ Album length is bad size: 1-16 inclusive, but given: ", len(album))
+
+		# Should have a reply
+		if ctx.message.reference is None:
+			return await ctx.send("⚠️ No reply found!")
+
+		async def convert_to_message(mess_id):
+			# Convert mess_id to message
+			mes = await commands.MessageConverter().convert(ctx, str(mess_id))
+
+			# Read in the file attachment
+			if len(mes.attachments) < 1:
+				raise ValueError("Wrong number of files: " + str(len(mes.attachments)) + " < 1")
+
+			return mes
+
+		messages = [await convert_to_message(ctx.message.reference.message_id)]
+
+		# aiohttp
+		async with aiohttp.ClientSession() as session:
+			for message in messages:
+				for attachment in message.attachments:
+
+					data = aiohttp.FormData(
+						{
+							'album': album,
+							'discord_id': str(message.author.id),
+							'art_url': attachment.url,
+							'datetime': message.created_at
+						}
+					)
+
+					async with session.post('http://localhost:1337/arts', data=data) as res:
+
+						# Check upload result
+						if str(res.status) == "200":
+							#TODO include link to art
+							await ctx.send("✅ 1 Art uploaded!!! Check it out at cookieandrock.dev/art")
+						else:
+							await ctx.send(res.status)
+							await ctx.send(await res.text())
 
 
 	@commands.command(
@@ -74,7 +131,8 @@ class ArtCog(commands.Cog, name="Art"):
 				docs.append({
 					'owner': 		message.author.id,
 					'url': 			attachment.url,
-					'bin': 			album
+					'bin': 			album,
+					'datetime':		message.created_at
 				})
 
 		# Upload data to server
@@ -107,106 +165,10 @@ class ArtCog(commands.Cog, name="Art"):
 			user = await commands.UserConverter().convert(ctx, author_id)
 
 		# Search the database for this author
-
-		time_start = time.time()
-
-		# The main structure which contains all the pics
-		html_template = """ <!DOCTYPE html>
-		<html>
-			<head>
-				<style>
-					* {{box-sizing: border-box;}}
-
-					.container {{
-						position: relative;
-						/*width: 50%;*/
-						max-width: 225px;
-					}}
-
-					.image {{
-						display: block;
-						width: 100%;
-						height: auto;
-					}}
-
-					.overlay {{
-						position: absolute; 
-						bottom: 0; 
-						background: rgb(0, 0, 0);
-						background: rgba(0, 0, 0, 0.5); /* Black see-through */
-						color: #f1f1f1; 
-						width: 100%;
-						transition: .5s ease;
-						opacity:0;
-						color: white;
-						font-size: 20px;
-						padding: 20px;
-						text-align: center;
-					}}
-
-					.container:hover .overlay {{
-						opacity: 1;
-					}}
-
-					div {{
-						float: left;
-						width: 50%;
-						height: 25%;
-					}}
-				</style>
-				<title>Arts!</title>
-			</head>
-			<body>
-
-				<h1>{0}'s Arts</h1>
-				<!-- <p>This is a paragraph.</p> -->
-
-				{1}
-
-			</body>
-		</html> """
+		return await ctx.send("Not ready yet; will send you the link to the art gallery")
 
 
-		# Do a basic search
-		arts = self.db.art_bin.find({'owner': int(user.id)})[:limit]
-
-		# Fits in the template
-		pic_html_template = '<img src="{0}" alt="{1}" style="width:225px;height:350px;">'
-		pic_html_template = '<img src="{0}" alt="{1}">'
-
-
-		# pic_html_template = """
-		# <div class="container">
-		# 	<img src="{0}" alt="{1}" style="width:225px;height:350px;" class="image">
-		# 	<div class="overlay">{1} #{2}</div>
-		# </div>
-		# """
-
-		# List of all the populated pic html templates
-		pics_html = [pic_html_template.format(art['url'], art['bin']) for art  in arts]
-		# pics_html = [pic_html_template.format(waifu['pic'], waifu['_id'], waifu['likes']) for waifu in waifu_order]
-
-		# Join all the pics together and then place it in the main template
-		html_file = html_template.format(user.name, "".join(pics_html))
-
-		# Convert the string into bytes so it can be made into a file
-		html_bytes = bytes(html_file, 'utf8')
-
-		# From bytes we need to get it into a file like object using io.BytesIO
-		html_buffer = io.BytesIO()
-		html_buffer.write(html_bytes)
-
-		# Reset the reading to the start
-		html_buffer.seek(0)
-
-		# Report the time it took to compute this
-		time_end = time.time()
-		compute_time = "Time: " + str(round(time_end - time_start, 2)) + "s"
-
-		# Completed
-		return await ctx.send("Done, " + compute_time, file=discord.File(html_buffer, filename=user.name+'_arts.html'))
-
-
+	@_art_reply_upload.error
 	@_art_upload.error
 	@_art_view.error
 	async def _any_error(self, ctx, error):
