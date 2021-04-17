@@ -220,7 +220,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 			# If there is a result then mention the user
 			if result != None:
-				await message.channel.send("10 Key {}: {}".format(self.MY_KAKERA_EMOTES[kakera_reaction.group(1)], self.bot.get_user(result['owner']).mention))
+				await message.channel.send("10 Key {}: <@{}>".format(self.MY_KAKERA_EMOTES[kakera_reaction.group(1)], result['owner']))
 
 			# Who rolled last
 			roller = self.data['last_user']

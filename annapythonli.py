@@ -15,6 +15,7 @@ import time
 bot = commands.Bot(
 	command_prefix	= (config.PREFIX*2, config.PREFIX) + config.PREFIXES,
 	case_insensitive= True
+	# intents = discord.Intents.all()
 )
 
 # Load the cogs

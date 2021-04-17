@@ -121,6 +121,9 @@ class TestCog(commands.Cog, name="testing"):
 
 		# Begin loophole
 		# Find our user (not possible to send message to self, so sending it to defined user)
+
+		return await ctx.send("BROKEN; 1.50 requires INTENTS")
+
 		user = self.bot.get_user(user_id)
 		# Create dm if there isn't one
 		if user.dm_channel == None:
