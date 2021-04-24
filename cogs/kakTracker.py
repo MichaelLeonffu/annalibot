@@ -41,7 +41,7 @@ class TrackCog(commands.Cog, name="Tracking"):
 		}
 
 		# Constants
-		self.ROLL_COMMANDS = ["$" + a + b for a in "whm" for b in list("abg") + ['']]
+		self.ROLL_COMMANDS = ["$" + a + b for a in "whm" for b in list("abgx") + ['']]
 
 		self.KAKERA_FULL_NAME = [
 			'<:kakeraP:609264156347990016>',
@@ -178,6 +178,85 @@ class TrackCog(commands.Cog, name="Tracking"):
 			# Upload data to server
 			self.db.kakera_claimed.insert_one(doc)
 			return
+
+		return
+		# <:kakeraL:815961697918779422>breaks down into:kakera:+:kakera:+:kakera:+:kakera:+:kakera: => Larypie +609 ($k)
+
+		kakera_collect = re.search(r'<:kakeraL:815961697918779422>breaks down into(<:kakera[PTGYORWL]?:\d+>\+?)+ => \*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
+
+		# Count when the kakera was collected
+		if kakera_collect:
+
+			# Figureout which kakera it was; convert from full name to name
+			kakera_type = kakera_collect.group(1)
+			kakera_type = re.search(r'<:(kakera[PTGYORWL]?):\d+>', kakera_type).group(1)
+
+			name = kakera_collect.group(3)
+
+			await message.channel.send("you claimed: " + str(kakera_collect.group(4)))
+
+			# Prepare doc
+			doc = {
+				'time': 	datetime.datetime.utcnow(),
+				'roller': 	self.data['last_user'],
+				'claimer':	name,
+				'kakera': 	kakera_type,
+				'value': 	int(kakera_collect.group(4))
+			}
+
+			# Upload data to server
+			self.db.kakera_claimed.insert_one(doc)
+			return
+
+	@commands.command(
+		name='kakmess')
+		# aliases=['s'],
+		# brief='Kakera stas',
+		# description='Reports the kakera roll and claim stats!',
+		# help='days (int): how many days back to search\nhours (int): how many hours back to search')
+	async def _kak_mess(self, ctx, message_id):
+
+		# Find the message
+		message = await commands.MessageConverter().convert(ctx, message_id)
+
+		await ctx.send("✅ Message found!")
+
+		print("\n\nmessage", message)
+
+		await ctx.send(message.content)
+
+		kakera_collect = re.search(r'<:kakeraL:815961697918779422>breaks down into((<:kakera[PTGYORWL]?:\d+>\+?)+) => \*\*(.+) \+(\d+)\*\* \(\$k\)', message.content)
+
+		# Count when the kakera was collected
+		if kakera_collect:
+
+			# Figureout which kakera it was; convert from full name to name
+			kakera_list = kakera_collect.group(1).split('+')
+			for kakera in kakera_list:
+				print(kakera)
+
+			name = kakera_collect.group(3)
+			value = kakera_collect.group(4)
+
+			await ctx.send("types: " + str(kakera_list))
+			await ctx.send("name: " + name)
+			await ctx.send("value: " + value)
+
+			await message.channel.send(name + " claimed: " + str(kakera_list))
+
+			# Prepare doc
+			doc = {
+				'time': 	datetime.datetime.utcnow(),
+				'roller': 	self.data['last_user'],
+				'claimer':	name,
+				'kakeras': 	kakera_list,
+				'value': 	int(value)
+			}
+
+			print(doc)
+
+			# Upload data to server
+			# self.db.kakera_light.insert_one(doc)
 
 
 	# When the bot notices a reaction to a message
