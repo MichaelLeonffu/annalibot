@@ -74,8 +74,8 @@ class SeasonalCog(commands.Cog, name="Seasonal"):
 			await message.add_reaction(random.choice(['🍺', '🍻', '🥂🍷', '🥃', '🍸', '🍾', '🎊', '🎉', '🎆']))
 
 		# On random chance add the emote
-		if random.random() < 0.0025:
-			await message.add_reaction(random.choice(self.SEASONAL_EMOTES))
+		# if random.random() < 0.0025:
+		# 	await message.add_reaction(random.choice(self.SEASONAL_EMOTES))
 
 			# Should remove the react after some time
 
