@@ -10,17 +10,24 @@ Installing annalibot requires that you have populated the config file and remove
 
 For python use [pip freeze](https://pip.pypa.io/en/stable/reference/pip_freeze/) to download all required libraries/packages
 
-`pip3 install -r requirements.txt`
+    pip3 install -r requirements.txt
 
 ## Running
 
 Running annalibot with a simple command:
 
-`python3 -B annapythonli.py`
+    python3 -B annapythonli.py
 
 If you want her to reboot after running `annali close` command then run with:
 
-`python3 -B annali_marathon.py`
+    python3 -B annali_marathon.py
+
+If you want logging and persistance after logging off:
+
+    source ../venv/bin/activate
+    nohup python -B annapythonli.py >> ../log/annapythonli.log 2>> ../log/annapythonli.err.log &
+
+*You may need to replace the paths with proper paths to your venv and log dirs.*
 
 ## Maintenance/DevOps
 
@@ -36,6 +43,8 @@ To keep annalibot up-to-date is easy to do even from discord!
 ## Development
 
 Developing on annalibot is easy!
+
+    source ../venv/bin/activate; python -B annapythonli.py >> ../log/annapythonli.log 2>> ../log/annapythonli.err.log
 
 ### Setting up stack (WIP)
 
