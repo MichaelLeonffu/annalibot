@@ -1,0 +1,14 @@
+pfp_tracker.json
+
+DB: 'pfp_tracker'
+
+
+Note: these are actually all unique
+
+pfp:
+{
+    _id: ObjectId(),
+    time: datetime,
+    user: 123,
+    // guild: 123, members should have different avatar per guild?
+}
