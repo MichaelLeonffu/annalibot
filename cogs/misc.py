@@ -44,52 +44,52 @@ class MiscCog(commands.Cog, name="Misc"):
         self.morse_lut.update({" ": "\\", "\\": " "})
 
     # @commands.command(
-    # 	name='math',
-    # 	aliases=['m'],
-    # 	brief='Does math',
-    # 	description='So Anna Li can do math, what can you do?',
-    # 	help='Anna Li can do your math! (Supported + - * /)',
-    # 	rest_is_raw=True)
+    #     name='math',
+    #     aliases=['m'],
+    #     brief='Does math',
+    #     description='So Anna Li can do math, what can you do?',
+    #     help='Anna Li can do your math! (Supported + - * /)',
+    #     rest_is_raw=True)
     # async def _math(self, ctx, *args):
 
-    # 	# Remove all the space and join together
-    # 	args = ''.join(args)
+    #     # Remove all the space and join together
+    #     args = ''.join(args)
 
-    # 	# Separating between numbers and operators
-    # 	acc = ""
-    # 	infix = []
-    # 	for arg in args:
-    # 		if arg.isnumeric():
-    # 			acc += arg
-    # 		else:
-    # 			infix.append(acc)
-    # 			infix.append(arg)
-    # 			acc = ""
+    #     # Separating between numbers and operators
+    #     acc = ""
+    #     infix = []
+    #     for arg in args:
+    #         if arg.isnumeric():
+    #             acc += arg
+    #         else:
+    #             infix.append(acc)
+    #             infix.append(arg)
+    #             acc = ""
 
-    # 	# This is likely given in infix notation
-    # 	operator_stack, operand_stack = [], []
+    #     # This is likely given in infix notation
+    #     operator_stack, operand_stack = [], []
 
-    # 	# Valid operators currently
-    # 	operators = "- + / * ( )".split(' ')
+    #     # Valid operators currently
+    #     operators = "- + / * ( )".split(' ')
 
-    # 	# Precedence rules PEMDAS
-    # 	precedence_rules = {op: operators.index(op) for op in operators}
+    #     # Precedence rules PEMDAS
+    #     precedence_rules = {op: operators.index(op) for op in operators}
 
-    # 	# Algorithm
-    # 	for arg in infix:
-    # 		if arg in operators:			# Operator
-    # 			while precedence_rules[operator_stack[-1:]] >= arg:
-    # 				top_op = operator_stack.pop()
-    # 				op1, op2 = operand_stack.pop(), operand_stack.pop()
-    # 				operand_stack.append(eval("op1 top_op op2"))
+    #     # Algorithm
+    #     for arg in infix:
+    #         if arg in operators:			# Operator
+    #             while precedence_rules[operator_stack[-1:]] >= arg:
+    #                 top_op = operator_stack.pop()
+    #                 op1, op2 = operand_stack.pop(), operand_stack.pop()
+    #                 operand_stack.append(eval("op1 top_op op2"))
 
-    # 		else:							# Operand
-    # 			# If it is not a valid operand then stop
-    # 			if not arg.isnumeric():
-    # 				return await ctx.send("Invalid operand: {}".format(arg))
-    # 			operand_stack.append(arg)
+    #         else:							# Operand
+    #             # If it is not a valid operand then stop
+    #             if not arg.isnumeric():
+    #                 return await ctx.send("Invalid operand: {}".format(arg))
+    #             operand_stack.append(arg)
 
-    # 	await ctx.send(arg)
+    #     await ctx.send(arg)
 
 
     @commands.command(
@@ -107,7 +107,7 @@ class MiscCog(commands.Cog, name="Misc"):
      brief='Get all emotes on this server',
      description='You cant do this yourself can you...',
      help='Lets get that for you')
-    async def _mypic(self, ctx):
+    async def _all_emotes(self, ctx):
 
         # Get guild
         emotes =  ["<:1:{}>".format(emoji.id) for emoji in ctx.guild.emojis if not emoji.animated]
@@ -148,39 +148,39 @@ class MiscCog(commands.Cog, name="Misc"):
      brief='Show your profile pic',
      description='You wana see someone else?',
      help='Lets get that for you')
-    async def _myourpic(self, ctx, mention, size=1024):
+    async def _yourpic(self, ctx, mention, size=1024):
         await ctx.send((await commands.MemberConverter().convert(ctx, mention)).avatar_url_as(size=size))
 
-    @commands.command(
-     name='nanitime',
-     aliases=['nt'],
-     brief='Shows what time it is in a time zone',
-     description='Only supports Korea and California',
-     help='I used datetime just for you!')
-    async def _nanitime(self, ctx, tz=""):
-        import datetime
-        import pytz
+    # @commands.command(
+    #  name='nanitime',
+    #  aliases=['nt'],
+    #  brief='Shows what time it is in a time zone',
+    #  description='Only supports Korea and California',
+    #  help='I used datetime just for you!')
+    # async def _nanitime(self, ctx, tz=""):
+    #     import datetime
+    #     import pytz
 
-        input_tz = str(tz).lower()
+    #     input_tz = str(tz).lower()
 
-        record = {
-         "california": "America/Los_Angeles",
-         "korea": "Asia/Seoul"
-        }
+    #     record = {
+    #      "california": "America/Los_Angeles",
+    #      "korea": "Asia/Seoul"
+    #     }
 
-        # 🌅🌄🌃🌌🌆🏙🎇🎆🇰🇷🇺🇸
+    #     # 🌅🌄🌃🌌🌆🏙🎇🎆🇰🇷🇺🇸
 
-        # One record only
-        if input_tz in record:
-            tz_datetime = datetime.datetime.now(pytz.timezone(record[input_tz]))
-            return await ctx.send("{}: {}".format(input_tz.upper(), tz_datetime.strftime("%Y-%m-%d %H:%M:%S")))
+    #     # One record only
+    #     if input_tz in record:
+    #         tz_datetime = datetime.datetime.now(pytz.timezone(record[input_tz]))
+    #         return await ctx.send("{}: {}".format(input_tz.upper(), tz_datetime.strftime("%Y-%m-%d %H:%M:%S")))
 
-        # All records
-        for input_tz in record:
-            tz_datetime = datetime.datetime.now(pytz.timezone(record[input_tz]))
-            await ctx.send("{}: {}".format(input_tz.upper(), tz_datetime.strftime("%Y-%m-%d %H:%M:%S")))
+    #     # All records
+    #     for input_tz in record:
+    #         tz_datetime = datetime.datetime.now(pytz.timezone(record[input_tz]))
+    #         await ctx.send("{}: {}".format(input_tz.upper(), tz_datetime.strftime("%Y-%m-%d %H:%M:%S")))
 
-        # await ctx.send("invalid choice, try: `nt california` or `nt korea`")
+    #     # await ctx.send("invalid choice, try: `nt california` or `nt korea`")
 
     @commands.command(
      name='add',
@@ -260,7 +260,8 @@ class MiscCog(commands.Cog, name="Misc"):
         await ctx.send("`{}`".format(morse))
 
     @_mypic.error
-    @_myourpic.error
+    @_all_emotes.error
+    @_yourpic.error
     @_add.error
     @_mul.error
     @_div.error

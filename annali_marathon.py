@@ -9,10 +9,10 @@ bash = "python3 -B annapythonli.py"
 
 print("Starting marathon")
 while True:
-	process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
-	output, error = process.communicate()
+    process = subprocess.Popen(bash.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
 
-	print("output: " + str(output))
-	print("error: " + str(error))
+    print("output: " + str(output))
+    print("error: " + str(error))
 
 print("Marathon done")
