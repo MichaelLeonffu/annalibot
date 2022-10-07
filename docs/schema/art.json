@@ -1,0 +1,39 @@
+art.json
+
+DB: 'art'
+
+
+Keeps track of art information
+
+art:
+{
+    _id: {
+        guild: 1234, // Discord id (int64), use .toString() to convert
+        channel: 1234,
+        message: 1234,
+        // A message link is unique and looks like:
+        // https://discord.com/channels/618654390907174913/628829103684059167/1027485496114413568
+        // it's guild/channel/message
+
+        // A message attachment is similar:
+        // https://media.discordapp.net/attachments/628829103684059167/1027485495577554964/inktober_day_06.png
+        // it's channel/attachment_id/file_name
+
+        // But not all attachments are the same e.g
+        // https://cdn.discordapp.com/attachments/628829103684059167/1027442495237390407/Untitled_Artwork.png
+        // This one is on the cdn (likely because it's a smaller file)
+
+        // NOTE the follow parameters can be given to the cdn: ?width=806&height=1138 this can be an optimization later
+    },
+    url: "https://etc",
+    owner: 1234, // The person who posted the message with the attachment
+    uploader: 1234, // The person who uploaded the art to the server
+    tags: ["abc", ...], // It's a collection of artworks/images, can be left blank, up to 32 characters each for up to 32 tags
+    datetime_created: datetime, // When the message was sent
+    datetime_uploaded: datetime, // When the art was uploaded to this server
+
+    series: "abc123", // The order of images up to 32 characters
+    title: "abc123", // Title of art given by user; or null for no title up to 64 characters
+    caption: "abc123", // Message contents of the upload; up to 1024 characters
+    // string defaults are ""
+}
