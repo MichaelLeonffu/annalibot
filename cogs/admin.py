@@ -143,8 +143,8 @@ async def del_message(ctx):
     return True
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(AdminCog(bot))
+async def setup(bot):
+    await bot.add_cog(AdminCog(bot))
     bot.add_check(del_message, call_once=False)
 
 # Remove the check

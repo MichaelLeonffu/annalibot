@@ -524,5 +524,5 @@ class ArtCog(commands.Cog, name="Art"):
         # 	print(error)
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(ArtCog(bot))
+async def setup(bot):
+    await bot.add_cog(ArtCog(bot))

@@ -154,5 +154,5 @@ class pfp_tracker_cog(commands.Cog, name="pfp_tracker"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(pfp_tracker_cog(bot))
+async def setup(bot):
+    await bot.add_cog(pfp_tracker_cog(bot))

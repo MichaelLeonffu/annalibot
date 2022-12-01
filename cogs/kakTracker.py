@@ -1015,5 +1015,5 @@ class TrackCog(commands.Cog, name="Tracking"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(TrackCog(bot))
+async def setup(bot):
+    await bot.add_cog(TrackCog(bot))

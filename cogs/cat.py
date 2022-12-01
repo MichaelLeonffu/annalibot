@@ -414,5 +414,5 @@ class CatCog(commands.Cog, name="Cat"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(CatCog(bot))
+async def setup(bot):
+    await bot.add_cog(CatCog(bot))

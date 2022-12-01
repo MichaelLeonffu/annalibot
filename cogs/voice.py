@@ -44,5 +44,5 @@ class VoiceCog(commands.Cog, name="Voice"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(VoiceCog(bot))
+async def setup(bot):
+    await bot.add_cog(VoiceCog(bot))

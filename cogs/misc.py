@@ -303,5 +303,5 @@ class MiscCog(commands.Cog, name="Misc"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(MiscCog(bot))
+async def setup(bot):
+    await bot.add_cog(MiscCog(bot))

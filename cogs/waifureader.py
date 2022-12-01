@@ -497,5 +497,5 @@ class WaifureaderCog(commands.Cog, name="WaifureaderCog"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(WaifureaderCog(bot))
+async def setup(bot):
+    await bot.add_cog(WaifureaderCog(bot))

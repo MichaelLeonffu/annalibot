@@ -5,11 +5,10 @@ import config.config as config
 # This is the discord
 import discord
 from discord.ext import commands
-# Timeit
-import timeit
 # Time
 import time
-
+# asyncio
+import asyncio
 
 # The bot
 bot = commands.Bot(
@@ -18,14 +17,6 @@ bot = commands.Bot(
     intents         = discord.Intents.all()
     # intents         = discord.Intents(members=True)
 )
-
-# Load the cogs
-if __name__ == '__main__':
-    for cog in config.COGS_LIST:
-        bot.load_extension(cog)
-
-        # Add a try catch to this later sometime?
-
 
 # When the bot connects to discord
 @bot.event
@@ -46,11 +37,12 @@ async def _reload(ctx):
     confirmation = await ctx.send("Reloading")
 
     try:
-        time = timeit.timeit(lambda: [bot.reload_extension(cog) for cog in config.COGS_LIST], number=1)
+        for cog in config.COGS_LIST:
+            await bot.reload_extension(cog)
     except Exception as err:
         return await confirmation.edit(content="Failed! " + str(err))
 
-    await confirmation.edit(content="Done! ({:.4f}s)".format(time))
+    await confirmation.edit(content="Done!")
 
 # (Un)Load exentions (cogs and listeners)
 @bot.command(
@@ -62,18 +54,19 @@ async def _xload(ctx, xload, ext):
     confirmation = await ctx.send("Reloading")
 
     if xload == "load":
-        time = timeit.timeit(lambda: [bot.load_extension(ext)], number=1)
+        await bot.load_extension(ext)
     elif xload == "unload":
-        time = timeit.timeit(lambda: [bot.unload_extension(ext)], number=1)
+        await bot.unload_extension(ext)
     elif xload == "reload":
-        time = timeit.timeit(lambda: [bot.reload_extension(ext)], number=1)
+        await bot.reload_extension(ext)
     elif xload == "list":
         await confirmation.edit(content="`{}`".format("\n".join([cog for cog in bot.cogs])))
+        return
     else:
         await confirmation.edit(content="`xload ([,un,re]load) cogs.name`")
         raise ValueError("Bad ([,un,re]load)")
 
-    await confirmation.edit(content="Done! ({:.4f}s)".format(time))
+    await confirmation.edit(content="Done!")
 
 # Close
 @bot.command(
@@ -94,7 +87,7 @@ async def _admin_error(ctx, error):
     elif isinstance(error, ValueError):
         print(error)
     else:
-        print(error)
+        await ctx.send(error)
 
 
 # Keep track of time
@@ -110,15 +103,27 @@ time_start = time.time()
 async def _time(ctx):
     await ctx.send(time_pretty(time.time() - time_start))
 
-
 def time_pretty(dTime):
     hours, remainder = divmod(dTime, 3600)
     minutes, seconds = divmod(remainder, 60)
     return '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
 
 
-# Connect the client to discord
-bot.run(config.DISCORD_TOKEN, bot=True, reconnect=True)
+async def main():
+    async with bot:
+
+        # load all the cogs
+        for cog in config.COGS_LIST:
+            await bot.load_extension(cog)
+            # Add a try catch to this later sometime?
+
+        # Connect the client to discord
+        await bot.start(config.DISCORD_TOKEN, reconnect=True)
+
+# Start the bot
+if __name__ == '__main__':
+
+    asyncio.run(main())
 
 
 # # HELP

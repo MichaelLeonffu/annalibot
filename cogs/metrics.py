@@ -15,8 +15,8 @@ def global_check(ctx):
 
 
 # Add the check
-def setup(bot):
-    bot.add_check(global_check, call_once=False)
+async def setup(bot):
+    await bot.add_check(global_check, call_once=False)
 
 # Remove the check
 def teardown(bot):

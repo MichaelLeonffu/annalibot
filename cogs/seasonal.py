@@ -106,5 +106,5 @@ class SeasonalCog(commands.Cog, name="Seasonal"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(SeasonalCog(bot))
+async def setup(bot):
+    await bot.add_cog(SeasonalCog(bot))

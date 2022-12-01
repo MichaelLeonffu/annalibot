@@ -227,5 +227,5 @@ class TestCog(commands.Cog, name="testing"):
 
 
 # Give the cog to the bot
-def setup(bot):
-    bot.add_cog(TestCog(bot))
+async def setup(bot):
+    await bot.add_cog(TestCog(bot))
